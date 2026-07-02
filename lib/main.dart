@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:poultry_pro/view/theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/view/Theme/color_theme.dart';
+import 'package:poultry_pro/view/Theme/text_theme.dart';
 import 'view/screens/splash_screen.dart';
 import 'view/screens/welcome_screen.dart';
 import 'view/screens/auth/signup/biometrics.dart';
@@ -17,7 +19,7 @@ import 'view/screens/mainScreen/settings_screen.dart';
 import 'view/screens/mainScreen/main_screen.dart';
 
 void main() {
-  runApp(PoultryPro());
+  runApp(ProviderScope(child: PoultryPro()));
 }
 
 class PoultryPro extends StatelessWidget {
@@ -31,13 +33,15 @@ class PoultryPro extends StatelessWidget {
       theme: ThemeData(
         colorScheme: lightMode,
         scaffoldBackgroundColor: Color(0xFFF7F8FA),
+        textTheme: textTheme,
       ),
       darkTheme: ThemeData(
         colorScheme: darkMode,
         scaffoldBackgroundColor: Color(0xFF0D1117),
+        textTheme: textTheme,
       ),
       themeMode: ThemeMode.system,
-      initialRoute: '/',
+      initialRoute: '/flocks',
       routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),
