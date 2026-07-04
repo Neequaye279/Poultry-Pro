@@ -93,7 +93,8 @@ class RecentActivityCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (!isLast) Divider(height: 1, color: colors.scrim),
+              if (!isLast)
+                Divider(height: 1, color: colors.scrim.withValues(alpha: 0.15)),
             ],
           );
         }),
