@@ -41,7 +41,11 @@ class PoultryPro extends StatelessWidget {
         textTheme: textTheme,
       ),
       themeMode: ThemeMode.system,
+<<<<<<< HEAD
       initialRoute: '/production',
+=======
+      initialRoute: '/',
+>>>>>>> 479a4eba5062d280edad2d5cb285feba11bfe78c
       routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),

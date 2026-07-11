@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD:lib/view_model/flock_viewMode.dart
 
+=======
+import 'package:poultry_pro/model/dummy_data.dart';
+>>>>>>> 479a4eba5062d280edad2d5cb285feba11bfe78c:lib/view_model/flock_viewmodel.dart
 import 'package:poultry_pro/model/flock.dart';
 import 'package:poultry_pro/model/flock_category.dart';
 

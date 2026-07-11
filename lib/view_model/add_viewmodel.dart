@@ -8,9 +8,16 @@ class AddViewmodel {
   final ageController = TextEditingController();
   FlockCategory selectedCategory = FlockCategory.broilers;
 
+<<<<<<< HEAD:lib/view_model/add_viewModel.dart
   String? validateName() {
     if (nameController.text.trim().isEmpty)
+=======
+  String? validateInput() {
+    if (nameController.text.isEmpty) return 'Product name must not be empty';
+    if (birdCountController.text.isEmpty) {
+>>>>>>> 479a4eba5062d280edad2d5cb285feba11bfe78c:lib/view_model/add_viewmodel.dart
       return 'Product name must not be empty';
+    }
     return null;
   }
 

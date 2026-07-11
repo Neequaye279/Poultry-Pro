@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/view_model/add_viewmodel.dart';
-import 'package:poultry_pro/view_model/flock_viewMode.dart';
-import 'package:poultry_pro/view/widgets/Buttons/category_dropDown_button.dart';
+import 'package:poultry_pro/view_model/flock_viewmodel.dart';
+import 'package:poultry_pro/view/widgets/Buttons/category_dropdown_button.dart';
 import 'package:poultry_pro/view/widgets/custom_textfield.dart';
 
 class AddFlockScreen extends ConsumerStatefulWidget {
