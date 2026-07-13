@@ -6,6 +6,7 @@ import 'package:poultry_pro/view/widgets/list_card.dart';
 import 'package:poultry_pro/view/widgets/pl_summary_card.dart';
 import 'package:poultry_pro/view/widgets/source_row.dart';
 import 'package:poultry_pro/view/widgets/transaction_row.dart';
+import 'package:poultry_pro/view/widgets/add_transaction_form.dart';
 
 class Finance extends StatefulWidget {
   const Finance({super.key});
@@ -15,10 +16,13 @@ class Finance extends StatefulWidget {
 }
 
 class _FinanceState extends State<Finance> {
+  int _period = 2;
+  bool _showAdd = false;
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    int period = 2;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -27,13 +31,18 @@ class _FinanceState extends State<Finance> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FinanceHeader(
-                onTap: () {},
+                onTap: () => setState(() => _showAdd = true),
                 onSecondTap: () {},
-                onChanged: (i) => setState(() => period = i),
-                selectedIndex: period,
+                onChanged: (i) => setState(() => _period = i),
+                selectedIndex: _period,
               ),
+              if (_showAdd)
+                AddTransactionForm(
+                  onCancel: () => setState(() => _showAdd = false),
+                  onSave: () => setState(() => _showAdd = false),
+                ),
               Padding(
-                padding: EdgeInsets.all(13.0),
+                padding: const EdgeInsets.all(9.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -64,7 +73,7 @@ class _FinanceState extends State<Finance> {
                     Text(
                       "Revenue Sources",
                       style: TextStyle(
-                        fontSize: 13.0,
+                        fontSize: 17.0,
                         fontWeight: FontWeight.w700,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -90,7 +99,7 @@ class _FinanceState extends State<Finance> {
                     Text(
                       "Expenses",
                       style: TextStyle(
-                        fontSize: 13.0,
+                        fontSize: 17.0,
                         fontWeight: FontWeight.w700,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -122,7 +131,7 @@ class _FinanceState extends State<Finance> {
                     Text(
                       "Transactions",
                       style: TextStyle(
-                        fontSize: 13.0,
+                        fontSize: 17.0,
                         fontWeight: FontWeight.w700,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -145,7 +154,7 @@ class _FinanceState extends State<Finance> {
                           isIncome: false,
                         ),
                         TransactionRow(
-                          icon: LucideIcons.bird,
+                          icon: LucideIcons.feather,
                           title: 'Bird Sales',
                           date: '2026-07-08',
                           amount: 'GHS 1,200',

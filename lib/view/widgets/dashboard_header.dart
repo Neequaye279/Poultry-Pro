@@ -25,14 +25,8 @@ class DashboardHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      color: colors.primary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -57,19 +51,29 @@ class DashboardHeader extends StatelessWidget {
                     Text(
                       farmName,
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
                         color: colors.onPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
-              _NotificationBell(
-                hasNotification: hasNotification,
+              GestureDetector(
                 onTap: onNotificationTap,
-                iconColor: colors.onPrimary,
-                bgColor: colors.onPrimary.withValues(alpha: 0.15),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colors.onPrimary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    LucideIcons.bell,
+                    color: colors.onPrimary,
+                    size: 22,
+                  ),
+                ),
               ),
             ],
           ),
@@ -79,57 +83,9 @@ class DashboardHeader extends StatelessWidget {
             percentChange: percentChange,
             monthLabel: monthLabel,
             fgColor: colors.onPrimary,
-            cardColor: colors.onPrimary.withValues(alpha: 0.12),
+            cardColor: colors.onPrimary.withValues(alpha: 0.10),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _NotificationBell extends StatelessWidget {
-  const _NotificationBell({
-    required this.hasNotification,
-    required this.iconColor,
-    required this.bgColor,
-    this.onTap,
-  });
-
-  final bool hasNotification;
-  final Color iconColor;
-  final Color bgColor;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(LucideIcons.bell, color: iconColor, size: 22),
-            if (hasNotification)
-              Positioned(
-                top: 8,
-                right: 10,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: const BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -152,14 +108,14 @@ class _NetProfitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isUp = percentChange >= 5;
+    final isUp = percentChange >= 0;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -208,38 +164,13 @@ class _NetProfitCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          _MiniBarChart(color: fgColor),
+          Icon(
+            LucideIcons.signal,
+            size: 34,
+            color: fgColor.withValues(alpha: 0.9),
+          ),
         ],
       ),
-    );
-  }
-}
-
-class _MiniBarChart extends StatelessWidget {
-  const _MiniBarChart({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final heights = [10.0, 16.0, 20.0, 26.0, 32.0, 40.0];
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: List.generate(heights.length, (i) {
-        final isLast = i == heights.length - 1;
-        return Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: Container(
-            width: 8,
-            height: heights[i],
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: isLast ? 1.0 : 0.4),
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-        );
-      }),
     );
   }
 }

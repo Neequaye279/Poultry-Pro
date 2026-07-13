@@ -16,6 +16,7 @@ class PeriodTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
+      height: 55,
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: cs.onSurface.withValues(alpha: 0.06),
@@ -28,8 +29,9 @@ class PeriodTabs extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onChanged(i),
               child: AnimatedContainer(
+                height: 45.0,
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 7),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: selected ? cs.surface : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
@@ -38,7 +40,7 @@ class PeriodTabs extends StatelessWidget {
                   labels[i],
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 14,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     color: selected ? cs.primary : cs.scrim,
                   ),
