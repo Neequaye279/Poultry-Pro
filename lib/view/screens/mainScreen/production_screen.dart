@@ -46,7 +46,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
   @override
   Widget build(BuildContext context) {
     ref.watch(productonProvider);
-    final _production = ref.read(productonProvider.notifier);
+    final production = ref.read(productonProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -78,7 +78,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                           onTap: () {
                             setState(() {
                               _isSelected = 'Eggs';
-                              _production.selectedCategory = ProductionType.egg;
+                              production.selectedCategory = ProductionType.egg;
                               _name = 'Eggs';
                             });
                           },
@@ -91,7 +91,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                           onTap: () {
                             setState(() {
                               _isSelected = 'Feed';
-                              _production.selectedCategory =
+                              production.selectedCategory =
                                   ProductionType.feed;
                               _name = 'Feed';
                             });
@@ -105,7 +105,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                           onTap: () {
                             setState(() {
                               _isSelected = 'Vaccines';
-                              _production.selectedCategory =
+                              production.selectedCategory =
                                   ProductionType.vaccines;
                               _name = 'Vaccines';
                             });
@@ -119,7 +119,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                           onTap: () {
                             setState(() {
                               _isSelected = 'Mortality';
-                              _production.selectedCategory =
+                              production.selectedCategory =
                                   ProductionType.mortality;
                             });
                           },
@@ -146,9 +146,9 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ProductionStatCard(
-              category: _production.selectedCategory ?? ProductionType.egg,
-              quantity: _production.totalCollected,
-              secondaryValue: _production.totalBroken,
+              category: production.selectedCategory ?? ProductionType.egg,
+              quantity: production.totalCollected,
+              secondaryValue: production.totalBroken,
             ),
 
             SizedBox(height: 20),
@@ -157,14 +157,14 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                 Expanded(
                   child: ProductionCard(
                     title: 'This week',
-                    count: _production.thisWeekTotal,
+                    count: production.thisWeekTotal,
                   ),
                 ),
                 SizedBox(width: 8),
                 Expanded(
                   child: ProductionCard(
                     title: 'Avg/Day',
-                    count: _production.avgPerDay.round(),
+                    count: production.avgPerDay.round(),
                   ),
                 ),
               ],
@@ -184,9 +184,9 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
               child: ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: _production.filterProduction.length,
+                itemCount: production.filterProduction.length,
                 itemBuilder: (BuildContext context, index) {
-                  final entry = _production.filterProduction[index];
+                  final entry = production.filterProduction[index];
                   return RecentRecordTile(
                     title:
                         '${entry.collected} ${entry.category.name} · ${entry.broken} broken',
