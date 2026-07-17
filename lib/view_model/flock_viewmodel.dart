@@ -17,8 +17,31 @@ class FlockViewmodeNotifier extends Notifier<List<Flock>> {
     return result;
   }
 
+  int get totalFlocks => state.length;
+
+  int get totalBirds =>
+      state.fold<int>(0, (sum, f) => sum + f.currentBirdCount);
+
+  int get averageAgeInWeeks {
+    final agesWithValue = state
+        .where((f) => f.ageInWeeks != null)
+        .map((f) => f.ageInWeeks!)
+        .toList();
+    if (agesWithValue.isEmpty) return 0;
+    return (agesWithValue.reduce((a, b) => a + b) / agesWithValue.length)
+        .round();
+  }
+
   void addFlock(Flock flock) {
     state = [...state, flock];
+  }
+
+  void removeFlock(Flock flock) {
+    state = state.where((f) => f != flock).toList();
+  }
+
+  void recordMortality(Flock flock, int deaths) {
+    state = state.map((f) => f == flock ? f.recordDeaths(deaths) : f).toList();
   }
 }
 

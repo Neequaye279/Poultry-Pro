@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:uuid/uuid.dart';
+import 'package:poultry_pro/model/transaction.dart';
+import 'package:poultry_pro/view_model/transaction_provider.dart';
 import 'finance_form_controls.dart';
 
 const revenueCategories = [
@@ -17,7 +21,23 @@ const expenseCategories = [
   'Other Expense',
 ];
 
-class AddTransactionForm extends StatefulWidget {
+const Map<String, IconData> categoryIcons = {
+  'Egg Sales': LucideIcons.egg,
+  'Bird Sales': LucideIcons.feather,
+  'Manure Sales': LucideIcons.recycle,
+  'Other Income': LucideIcons.plusCircle,
+  'Feed': LucideIcons.wheat,
+  'Vaccines': LucideIcons.syringe,
+  'Labour': LucideIcons.user,
+  'Utilities': LucideIcons.zap,
+  'Equipment': LucideIcons.wrench,
+  'Other Expense': LucideIcons.minusCircle,
+};
+
+IconData iconForCategory(String category) =>
+    categoryIcons[category] ?? LucideIcons.circleDollarSign;
+
+class AddTransactionForm extends ConsumerStatefulWidget {
   const AddTransactionForm({
     super.key,
     required this.onCancel,
@@ -27,10 +47,10 @@ class AddTransactionForm extends StatefulWidget {
   final VoidCallback onSave;
 
   @override
-  State<AddTransactionForm> createState() => _AddTransactionFormState();
+  ConsumerState<AddTransactionForm> createState() => _AddTransactionFormState();
 }
 
-class _AddTransactionFormState extends State<AddTransactionForm> {
+class _AddTransactionFormState extends ConsumerState<AddTransactionForm> {
   bool _isIncome = true;
   String _category = revenueCategories.first;
   final _amountCtrl = TextEditingController();
@@ -64,6 +84,28 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
       _dateError = _dateCtrl.text.isEmpty ? 'Pick a date' : null;
     });
     if (_amountError != null || _dateError != null) return;
+
+    final parsedDate = DateTime.tryParse(_dateCtrl.text) ?? DateTime.now();
+
+    final transaction = Transaction(
+      id: const Uuid().v4(),
+      type: _isIncome ? TransactionType.income : TransactionType.expense,
+      category: _category,
+      amount: amt!,
+      date: parsedDate,
+      note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
+    );
+
+    ref.read(transactionProvider.notifier).addTransaction(transaction);
+
+    _amountCtrl.clear();
+    _noteCtrl.clear();
+    setState(() {
+      _isIncome = true;
+      _category = revenueCategories.first;
+      _dateCtrl.text = DateTime.now().toIso8601String().substring(0, 10);
+    });
+
     widget.onSave();
   }
 
@@ -100,14 +142,14 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
               ),
             ],
           ),
-          const SizedBox(height: 11),
+          SizedBox(height: 11),
           SegmentedTabs(
             labels: const ['Income', 'Expense'],
             selectedIndex: _isIncome ? 0 : 1,
             onChanged: _switchType,
             activeColors: [cs.tertiary, cs.error],
           ),
-          const SizedBox(height: 13),
+          SizedBox(height: 13),
           FormFieldSelect(
             label: 'Category',
             value: _category,
@@ -136,7 +178,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             controller: _noteCtrl,
             optional: true,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Row(
             children: [
               PrimaryButton(
@@ -144,7 +186,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                 onTap: widget.onCancel,
                 outline: true,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               PrimaryButton(label: 'Save', onTap: _submit),
             ],
           ),

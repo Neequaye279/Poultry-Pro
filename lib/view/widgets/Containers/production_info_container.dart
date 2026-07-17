@@ -21,7 +21,7 @@ class ProductionInfoContainer extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           color: isSelected
               ? Theme.of(context).colorScheme.scrim
-              : const Color(0xFF21262D),
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
         child: Center(child: Text(title)),
       ),

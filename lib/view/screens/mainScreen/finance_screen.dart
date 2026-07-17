@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/model/transaction.dart';
+import 'package:poultry_pro/view_model/finance_period_provider.dart';
+import 'package:poultry_pro/view_model/filtered_transactions_provider.dart';
+import 'package:poultry_pro/view_model/finance_summary_provider.dart';
 import 'package:poultry_pro/view/widgets/finance_header.dart';
 import 'package:poultry_pro/view/widgets/expense_row.dart';
 import 'package:poultry_pro/view/widgets/list_card.dart';
@@ -8,33 +12,59 @@ import 'package:poultry_pro/view/widgets/source_row.dart';
 import 'package:poultry_pro/view/widgets/transaction_row.dart';
 import 'package:poultry_pro/view/widgets/add_transaction_form.dart';
 
-class Finance extends StatefulWidget {
+class Finance extends ConsumerStatefulWidget {
   const Finance({super.key});
 
   @override
-  State<Finance> createState() => _FinanceState();
+  ConsumerState<Finance> createState() => _FinanceState();
 }
 
-class _FinanceState extends State<Finance> {
-  int _period = 2;
+class _FinanceState extends ConsumerState<Finance> {
   bool _showAdd = false;
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final period = ref.watch(financePeriodProvider);
+    final transactions = ref.watch(filteredTransactionsProvider);
+    final summary = ref.watch(financeSummaryProvider);
+
+    final incomeTx = transactions
+        .where((t) => t.type == TransactionType.income)
+        .toList();
+    final expenseTx = transactions
+        .where((t) => t.type == TransactionType.expense)
+        .toList();
+
+    final revenueByCategory = <String, double>{};
+    for (final t in incomeTx) {
+      revenueByCategory[t.category] =
+          (revenueByCategory[t.category] ?? 0) + t.amount;
+    }
+
+    final expenseByCategory = <String, double>{};
+    for (final t in expenseTx) {
+      expenseByCategory[t.category] =
+          (expenseByCategory[t.category] ?? 0) + t.amount;
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => setState(() => _showAdd = !_showAdd),
+        child: Icon(_showAdd ? Icons.close : Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               FinanceHeader(
-                onTap: () => setState(() => _showAdd = true),
-                onSecondTap: () {},
-                onChanged: (i) => setState(() => _period = i),
-                selectedIndex: _period,
+                onChanged: (i) => ref
+                    .read(financePeriodProvider.notifier)
+                    .setPeriod(FinancePeriod.values[i]),
+                selectedIndex: FinancePeriod.values.indexOf(period),
               ),
               if (_showAdd)
                 AddTransactionForm(
@@ -47,24 +77,41 @@ class _FinanceState extends State<Finance> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     PLSummaryCard(
-                      title: 'THIS MONTH . P&L',
+                      title: '${periodLabel(period)} . P&L',
                       rows: [
                         PLRowData(
                           'Revenue',
-                          "GHS 7,930",
-                          1.0,
+                          "GHS ${summary.revenue.toStringAsFixed(0)}",
+                          summary.revenue == 0
+                              ? 0.0
+                              : summary.revenue /
+                                    (summary.revenue + summary.expenses).clamp(
+                                      1,
+                                      double.infinity,
+                                    ),
                           Theme.of(context).colorScheme.tertiary,
                         ),
                         PLRowData(
                           'Expenses',
-                          "GHS 2,280",
-                          0.29,
+                          "GHS ${summary.expenses.toStringAsFixed(0)}",
+                          summary.expenses == 0
+                              ? 0.0
+                              : summary.expenses /
+                                    (summary.revenue + summary.expenses).clamp(
+                                      1,
+                                      double.infinity,
+                                    ),
                           Theme.of(context).colorScheme.error,
                         ),
                         PLRowData(
                           'Net Profit',
-                          "GHS 5,650",
-                          0.71,
+                          "GHS ${summary.netProfit.toStringAsFixed(0)}",
+                          summary.revenue == 0
+                              ? 0.0
+                              : (summary.netProfit / summary.revenue).clamp(
+                                  0,
+                                  1,
+                                ),
                           Theme.of(context).colorScheme.primary,
                         ),
                       ],
@@ -79,22 +126,23 @@ class _FinanceState extends State<Finance> {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    ListCard(
-                      rows: [
-                        SourceRow(
-                          icon: LucideIcons.egg,
-                          title: "Egg Sales",
-                          subtitle: "68% of revenue",
-                          value: "GHS 4,730",
-                        ),
-                        SourceRow(
-                          icon: LucideIcons.feather,
-                          title: "Bird Sales",
-                          subtitle: "32% of revenue",
-                          value: "GHS 3,200",
-                        ),
-                      ],
-                    ),
+                    revenueByCategory.isEmpty
+                        ? const _EmptySectionMessage(
+                            message: 'No income recorded yet',
+                          )
+                        : ListCard(
+                            rows: revenueByCategory.entries.map((e) {
+                              final pct = summary.revenue == 0
+                                  ? 0
+                                  : (e.value / summary.revenue * 100).round();
+                              return SourceRow(
+                                icon: iconForCategory(e.key),
+                                title: e.key,
+                                subtitle: '$pct% of revenue',
+                                value: 'GHS ${e.value.toStringAsFixed(0)}',
+                              );
+                            }).toList(),
+                          ),
                     SizedBox(height: screenHeight * 0.04),
                     Text(
                       "Expenses",
@@ -105,28 +153,24 @@ class _FinanceState extends State<Finance> {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    ListCard(
-                      rows: [
-                        ExpenseRow(
-                          icon: LucideIcons.wheat,
-                          title: 'Feed',
-                          value: "GHS 1300",
-                          barPct: 0.9,
-                        ),
-                        ExpenseRow(
-                          icon: LucideIcons.syringe,
-                          title: "Vaccines",
-                          value: "GHS 680",
-                          barPct: 0.5,
-                        ),
-                        ExpenseRow(
-                          icon: LucideIcons.user,
-                          title: "Labour",
-                          value: "GHS 300",
-                          barPct: 0.25,
-                        ),
-                      ],
-                    ),
+                    expenseByCategory.isEmpty
+                        ? const _EmptySectionMessage(
+                            message: 'No expenses recorded yet',
+                          )
+                        : ListCard(
+                            rows: expenseByCategory.entries.map((e) {
+                              final maxExpense = expenseByCategory.values
+                                  .reduce((a, b) => a > b ? a : b);
+                              return ExpenseRow(
+                                icon: iconForCategory(e.key),
+                                title: e.key,
+                                value: 'GHS ${e.value.toStringAsFixed(0)}',
+                                barPct: maxExpense == 0
+                                    ? 0
+                                    : e.value / maxExpense,
+                              );
+                            }).toList(),
+                          ),
                     SizedBox(height: screenHeight * 0.04),
                     Text(
                       "Transactions",
@@ -137,50 +181,48 @@ class _FinanceState extends State<Finance> {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    ListCard(
-                      rows: [
-                        TransactionRow(
-                          icon: LucideIcons.egg,
-                          title: 'Egg Sales',
-                          date: '2026-07-10',
-                          amount: 'GHS 620',
-                          isIncome: true,
-                        ),
-                        TransactionRow(
-                          icon: LucideIcons.wheat,
-                          title: 'Feed',
-                          date: '2026-07-10',
-                          amount: 'GHS 180',
-                          isIncome: false,
-                        ),
-                        TransactionRow(
-                          icon: LucideIcons.feather,
-                          title: 'Bird Sales',
-                          date: '2026-07-08',
-                          amount: 'GHS 1,200',
-                          isIncome: true,
-                        ),
-                        TransactionRow(
-                          icon: LucideIcons.syringe,
-                          title: 'Vaccines',
-                          date: '2026-07-08',
-                          amount: 'GHS 300',
-                          isIncome: false,
-                        ),
-                        TransactionRow(
-                          icon: LucideIcons.user,
-                          title: 'Labour',
-                          date: '2026-07-07',
-                          amount: 'GHS 100',
-                          isIncome: false,
-                        ),
-                      ],
-                    ),
+                    transactions.isEmpty
+                        ? const _EmptySectionMessage(
+                            message: 'No transactions recorded yet',
+                          )
+                        : ListCard(
+                            rows: transactions.map((t) {
+                              return TransactionRow(
+                                icon: iconForCategory(t.category),
+                                title: t.category,
+                                date:
+                                    '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}-${t.date.day.toString().padLeft(2, '0')}',
+                                amount: 'GHS ${t.amount.toStringAsFixed(0)}',
+                                isIncome: t.type == TransactionType.income,
+                              );
+                            }).toList(),
+                          ),
                   ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptySectionMessage extends StatelessWidget {
+  final String message;
+  const _EmptySectionMessage({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      alignment: Alignment.center,
+      child: Text(
+        message,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.scrim,
+          fontSize: 13,
         ),
       ),
     );

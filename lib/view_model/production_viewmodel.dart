@@ -48,6 +48,14 @@ class ProductionViewmodel extends Notifier<List<Production>> {
   void addProduction(Production production) {
     state = [...state, production];
   }
+
+  void removeProduction(String id) {
+    state = state.where((p) => p.id != id).toList();
+  }
+
+  void undoRemove(Production production) {
+    state = [...state, production];
+  }
 }
 
 final productonProvider =

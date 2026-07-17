@@ -22,8 +22,15 @@ class WelcomeScreen extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(32),
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.25),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   Icons.eco_outlined,
@@ -49,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                 'Complete farm management - flocks, \nproduction, and finances in one place.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
 
@@ -174,40 +181,22 @@ class _WelcomeFeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.brightness == Brightness.light
-            ? Colors.white
-            : colorScheme.onSurface.withOpacity(0.04),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: colorScheme.brightness == Brightness.light
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
-      ),
-      child: Column(
-        children: [
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: textTheme.labelMedium?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w700,
-            ),
+    return Column(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: colorScheme.secondary.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
           ),
-          const SizedBox(height: 2),
-          Text(
-            caption,
-            textAlign: TextAlign.center,
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurface.withOpacity(0.5),
-            ),
+          child: Icon(icon, color: colorScheme.secondary, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ],
       ),

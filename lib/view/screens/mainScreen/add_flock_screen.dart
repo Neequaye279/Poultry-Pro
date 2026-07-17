@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/view/widgets/Buttons/status_dropdown_button.dart';
 import 'package:poultry_pro/view_model/add_flock_viewmodel.dart';
 import 'package:poultry_pro/view_model/flock_viewmodel.dart';
 import 'package:poultry_pro/view/widgets/Buttons/category_dropdown_button.dart';
@@ -57,6 +58,7 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                       ).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
+
                   const SizedBox(height: 28),
                   _buildLabel(context, 'Flock name'),
                   CustomTextfield(
@@ -65,27 +67,20 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                     keyboardType: TextInputType.name,
                     validator: (value) => ad.validateInput(),
                   ),
-                  const SizedBox(height: 28),
 
+                  const SizedBox(height: 28),
+                  _buildLabel(context, 'BIRD COUNT'),
+                  const SizedBox(height: 8),
+                  CustomTextfield(
+                    hintText: 'e.g. 200',
+                    controller: ad.birdCountController,
+                    keyboardType: TextInputType.number,
+                    validator: (value) => ad.validateBirdCount(),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildLabel(context, 'BIRD COUNT'),
-                            const SizedBox(height: 8),
-                            CustomTextfield(
-                              hintText: 'e.g. 200',
-                              controller: ad.birdCountController,
-                              keyboardType: TextInputType.number,
-                              validator: (value) => ad.validateBirdCount(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,8 +100,29 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildLabel(context, 'STATUS'),
+                            const SizedBox(height: 8),
+                            FlockStatusDropdown(
+                              value: ad.selectedStatus,
+                              onChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    ad.selectedStatus = newValue;
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
+
                   const SizedBox(height: 16),
                   _buildLabel(context, 'Age'),
                   const SizedBox(height: 8),

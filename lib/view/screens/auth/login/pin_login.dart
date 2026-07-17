@@ -61,49 +61,38 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Column(
-            children: [
-              const SizedBox(height: 8),
+                    children: [
+                      const SizedBox(height: 8),
 
-              // Back button
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: Icon(
-                      Icons.arrow_back_rounded,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
+                      // Back button
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: Icon(
+                              Icons.arrow_back_rounded,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
 
-              const Spacer(flex: 2),
+                      const Spacer(flex: 2),
 
-              // Icon
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Icon(
-                  Icons.lock_outline_rounded,
-                  color: colorScheme.onPrimary,
-                  size: 44,
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              Text(
-                'Enter your PIN',
-                style: textTheme.headlineSmall?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-
-              const SizedBox(height: 8),
+                      // Icon
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Icon(
+                          Icons.lock_outline_rounded,
+                          color: colorScheme.onPrimary,
+                          size: 44,
+                        ),
+                      ),
 
               Text(
                 'Enter your 4-digit PIN to continue',
@@ -134,51 +123,87 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                             : colorScheme.onSurface.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
-                    ),
-                  );
-                }),
-              ),
 
-              const SizedBox(height: 16),
+                      const SizedBox(height: 8),
 
-              SizedBox(
-                height: 20,
-                child: _errorText != null
-                    ? Text(
-                        _errorText!,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.error,
+                      Text(
+                        'Enter your 4-digit PIN to continue',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
-                      )
-                    : null,
-              ),
+                      ),
 
-              const Spacer(flex: 2),
+                      const SizedBox(height: 32),
 
-              // Keypad
-              _PinKeypad(
-                onKeyTap: _onKeyTap,
-                onBackspace: _onBackspace,
-                colorScheme: colorScheme,
-                textTheme: textTheme,
-              ),
+                      // PIN dots
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(pinLength, (index) {
+                          final filled = index < _pin.length;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            width: 18,
+                            height: 18,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: filled
+                                  ? colorScheme.primary
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: filled
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                width: 1.5,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
 
-              const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushReplacementNamed('/paLogin');
-                },
-                child: Text(
-                  'Use password instead',
-                  style: textTheme.labelLarge?.copyWith(
-                    color: colorScheme.primary,
-                  ),
-                ),
-              ),
+                      SizedBox(
+                        height: 20,
+                        child: _errorText != null
+                            ? Text(
+                                _errorText!,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.error,
+                                ),
+                              )
+                            : null,
+                      ),
 
-              const SizedBox(height: 12),
-            ],
+                      const Spacer(flex: 2),
+
+                      // Keypad
+                      _PinKeypad(
+                        onKeyTap: _onKeyTap,
+                        onBackspace: _onBackspace,
+                        colorScheme: colorScheme,
+                        textTheme: textTheme,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(
+                            context,
+                          ).pushReplacementNamed('/paLogin');
+                        },
+                        child: Text(
+                          'Use password instead',
+                          style: textTheme.labelLarge?.copyWith(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+                    ],
                   ),
                 ),
               ),
@@ -219,12 +244,14 @@ class _PinKeypad extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: row
-                  .map((digit) => _KeypadButton(
-                        label: digit,
-                        onTap: () => onKeyTap(digit),
-                        colorScheme: colorScheme,
-                        textTheme: textTheme,
-                      ))
+                  .map(
+                    (digit) => _KeypadButton(
+                      label: digit,
+                      onTap: () => onKeyTap(digit),
+                      colorScheme: colorScheme,
+                      textTheme: textTheme,
+                    ),
+                  )
                   .toList(),
             ),
           ),

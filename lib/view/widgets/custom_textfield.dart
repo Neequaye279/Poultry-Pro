@@ -24,13 +24,15 @@ class CustomTextfield extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
       onChanged: onChanged,
       validator: validator,
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      style: TextStyle(color: colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: Color(0xFF8B8D98)),
@@ -47,34 +49,22 @@ class CustomTextfield extends StatelessWidget {
                 child: suffixIcon,
               ),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surface,
+        fillColor: colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            width: 2.0,
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
+          borderSide: BorderSide(width: 2.0, color: colorScheme.primary),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            width: 2.0,
-            color: Theme.of(context).colorScheme.onPrimary,
-          ),
+          borderSide: BorderSide(width: 2.0, color: colorScheme.primary),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            width: 2.0,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          borderSide: BorderSide(width: 2.5, color: colorScheme.primary),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(
-            width: 2.0,
-            color: Theme.of(context).colorScheme.error,
-          ),
+          borderSide: BorderSide(width: 2.0, color: colorScheme.error),
         ),
       ),
     );
