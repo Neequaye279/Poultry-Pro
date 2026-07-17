@@ -19,31 +19,24 @@ class WelcomeScreen extends StatelessWidget {
 
               // App logo / icon
               Container(
-                width: 110,
-                height: 110,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: colorScheme.primary,
-                  borderRadius: BorderRadius.circular(28),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.25),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
+                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(32),
                 ),
                 child: Icon(
-                  Icons.egg_rounded,
-                  color: colorScheme.onPrimary,
+                  Icons.eco_outlined,
+                  color: colorScheme.primary,
                   size: 56,
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // App name
               Text(
-                'Poultry Pro',
+                'Poultry Farm Manager',
                 style: textTheme.headlineLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -53,41 +46,49 @@ class WelcomeScreen extends StatelessWidget {
 
               // Tagline
               Text(
-                'Manage your flock with ease.\nTrack health, feed, and production in one place.',
+                'Complete farm management - flocks, \nproduction, and finances in one place.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
 
-              const Spacer(flex: 3),
+              const SizedBox(height: 28),
 
               // Feature highlights row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _WelcomeFeature(
-                    icon: Icons.pets_rounded,
-                    label: 'Flock',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  _WelcomeFeature(
-                    icon: Icons.health_and_safety_outlined,
-                    label: 'Health',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  _WelcomeFeature(
-                    icon: Icons.bar_chart_rounded,
-                    label: 'Records',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                ],
-              ),
-
-              const Spacer(flex: 2),
+              
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Flocks',
+                              caption: 'Track',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Production',
+                              caption: 'Record',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Finance',
+                              caption: 'Analyse',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                        ],
+                      ),
+ 
+                      const Spacer(flex: 3),
 
               // Get Started button
               SizedBox(
@@ -106,7 +107,7 @@ class WelcomeScreen extends StatelessWidget {
                     Navigator.of(context).pushReplacementNamed('/piLogin');
                   },
                   child: Text(
-                    'Get Started',
+                    'Log In',
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onPrimary,
                     ),
@@ -129,10 +130,10 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/paLogin');
+                    Navigator.of(context).pushNamed('/sudetails');
                   },
                   child: Text(
-                    'Sign in with password',
+                    'Create Account',
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.primary,
                     ),
@@ -140,7 +141,16 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              Text(
+                'Poultry Farm Manager .v1.2',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.4),
+                ),
+              ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -149,40 +159,58 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _WelcomeFeature extends StatelessWidget {
-  final IconData icon;
+class _WelcomeFeatureCard extends StatelessWidget {
   final String label;
+  final String caption;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
-  const _WelcomeFeature({
-    required this.icon,
+  const _WelcomeFeatureCard({
     required this.label,
+    required this.caption,
     required this.colorScheme,
     required this.textTheme,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: colorScheme.secondary.withOpacity(0.12),
-            shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.brightness == Brightness.light
+            ? Colors.white
+            : colorScheme.onSurface.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: colorScheme.brightness == Brightness.light
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null,
+      ),
+      child: Column(
+        children: [
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: textTheme.labelMedium?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          child: Icon(icon, color: colorScheme.secondary, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurface.withOpacity(0.6),
+          const SizedBox(height: 2),
+          Text(
+            caption,
+            textAlign: TextAlign.center,
+            style: textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.5),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

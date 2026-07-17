@@ -108,7 +108,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
               Text(
                 'Enter your 4-digit PIN to continue',
                 style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
 
@@ -131,7 +131,7 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                       border: Border.all(
                         color: filled
                             ? colorScheme.primary
-                            : colorScheme.onSurface.withOpacity(0.3),
+                            : colorScheme.onSurface.withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                     ),
@@ -291,7 +291,7 @@ class _KeypadButton extends StatelessWidget {
                   )
                 : Icon(
                     icon,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                     size: 26,
                   ),
           ),
