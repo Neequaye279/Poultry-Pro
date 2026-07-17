@@ -35,7 +35,7 @@ class ProductionStatCard extends StatelessWidget {
       case ProductionType.vaccines:
         return ' doses';
       case ProductionType.mortality:
-        return ' birds';
+        return ' birds sick';
     }
   }
 
@@ -46,9 +46,9 @@ class ProductionStatCard extends StatelessWidget {
       case ProductionType.feed:
         return 'kg remaining';
       case ProductionType.vaccines:
-        return 'flocks covered';
+        return 'wasted';
       case ProductionType.mortality:
-        return 'this week';
+        return 'dead';
     }
   }
 
@@ -68,18 +68,26 @@ class ProductionStatCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_title, style: Theme.of(context).textTheme.bodyLarge),
+                Text(
+                  _title,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   '$quantity$_quantityUnit',
                   style: Theme.of(context).textTheme.displayMedium!.copyWith(
                     fontWeight: FontWeight.w800,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '$secondaryValue $_secondaryLabel',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               ],
             ),

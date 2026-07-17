@@ -15,6 +15,7 @@ final lightMode = const ColorScheme(
   tertiary: Color(0xFF16A34A),
   onTertiary: Color(0xFFFFFFFF),
   inversePrimary: Color(0xFF2563EB),
+  surfaceContainerHighest: Color(0xFFECEFF3), // tab bar background (light)
 );
 
 final darkMode = const ColorScheme(
@@ -31,4 +32,5 @@ final darkMode = const ColorScheme(
   tertiary: Color(0xFF3FB85A),
   onTertiary: Color(0xFF0F2A1A),
   inversePrimary: Color(0xFF58A6FF),
+  surfaceContainerHighest: Color(0xFF21262D), // tab bar background (dark)
 );

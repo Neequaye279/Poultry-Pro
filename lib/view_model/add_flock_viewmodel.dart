@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:poultry_pro/model/flock.dart';
 import 'package:poultry_pro/model/flock_category.dart';
+import 'package:poultry_pro/model/status_category.dart';
 
 class AddFlockViewModel {
   final nameController = TextEditingController();
   final birdCountController = TextEditingController();
   final ageController = TextEditingController();
   FlockCategory selectedCategory = FlockCategory.broilers;
+  FlockStatus selectedStatus = FlockStatus.active;
+  String? imagePath;
 
   String? validateInput() {
     if (nameController.text.isEmpty) return 'Product name must not be empty';
@@ -38,8 +41,12 @@ class AddFlockViewModel {
     return Flock(
       name: nameController.text.trim(),
       category: selectedCategory,
-      birdCount: int.tryParse(birdCountController.text.trim()) ?? 0,
+      initialBirdCount: int.tryParse(birdCountController.text.trim()) ?? 0,
       ageInWeeks: int.tryParse(ageController.text.trim()) ?? 0,
+      status: selectedStatus,
+      imagePath: (imagePath != null && imagePath!.isNotEmpty)
+          ? imagePath
+          : null,
     );
   }
 

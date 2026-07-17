@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/model/production.dart';
 import 'package:poultry_pro/model/production_category.dart';
 import 'package:poultry_pro/view/screens/mainScreen/add_production_sheet.dart';
 import 'package:poultry_pro/view/widgets/Containers/production_card.dart';
@@ -19,11 +20,11 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
   String _isSelected = 'Eggs';
   String _name = 'Eggs';
 
-  void _showAddEggEntrySheet(BuildContext context) {
+  void _showAddEntrySheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // lets sheet resize when keyboard opens
-      backgroundColor: const Color(0xFF1A1D24),
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -43,10 +44,63 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
     );
   }
 
+  String _labelFor(ProductionType category) {
+    switch (category) {
+      case ProductionType.egg:
+        return 'Eggs';
+      case ProductionType.feed:
+        return 'Feed';
+      case ProductionType.vaccines:
+        return 'Vaccines';
+      case ProductionType.mortality:
+        return 'Mortality';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(productonProvider);
-    final production = ref.read(productonProvider.notifier);
+    final _production = ref.read(productonProvider.notifier);
+    ref.listen<List<Production>>(productonProvider, (previous, next) {
+      final isNewEntryAdded = (previous?.length ?? 0) < next.length;
+      if (isNewEntryAdded) {
+        final newEntry = next.last;
+        setState(() {
+          _production.selectedCategory = newEntry.category;
+          _isSelected = _labelFor(newEntry.category);
+          _name = _labelFor(newEntry.category);
+        });
+      }
+    });
+
+    void showUndoSnackBar(BuildContext context, Production production) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            content: Text(
+              'Entry deleted',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'UNDO',
+              textColor: Theme.of(context).colorScheme.primary,
+              onPressed: () {
+                _production.undoRemove(production);
+              },
+            ),
+          ),
+        );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +121,9 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF21262D),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -136,7 +192,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddEggEntrySheet(context);
+          _showAddEntrySheet(context);
         },
         child: Icon(Icons.add),
       ),
@@ -178,7 +234,7 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListView.builder(
@@ -186,12 +242,20 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: production.filterProduction.length,
                 itemBuilder: (BuildContext context, index) {
-                  final entry = production.filterProduction[index];
-                  return RecentRecordTile(
-                    title:
-                        '${entry.collected} ${entry.category.name} · ${entry.broken} broken',
-                    category: entry.category,
-                    date: entry.date,
+                  final entry = _production.filterProduction[index];
+                  return Dismissible(
+                    key: ValueKey(entry.id),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      _production.removeProduction(entry.id);
+                      showUndoSnackBar(context, entry);
+                    },
+                    child: RecentRecordTile(
+                      title:
+                          '${entry.collected} ${entry.category.name} · ${entry.broken} ${entry.category.name}',
+                      category: entry.category,
+                      date: entry.date,
+                    ),
                   );
                 },
               ),
