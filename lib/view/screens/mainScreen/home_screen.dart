@@ -220,7 +220,12 @@ class Home extends ConsumerWidget {
                           flockName: "Feed stock",
                           restockMessage:
                               "restock in ~${daysOfFeedLeft.round()} days",
-                          onTap: () {},
+                          onTap: () {
+                            ref
+                                .read(productionCategoryProvider.notifier)
+                                .setCategory(ProductionType.feed);
+                            Navigator.pushNamed(context, '/production');
+                          },
                         ),
                       ),
                     WeeklyEggsCard(
