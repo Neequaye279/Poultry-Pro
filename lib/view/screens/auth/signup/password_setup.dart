@@ -1,10 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:poultry_pro/model/signup_data.dart';
 import 'package:poultry_pro/view/widgets/progress_stepper.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
+import 'package:poultry_pro/view_model/signup_provider.dart';
 
-class PasswordSetup extends StatelessWidget {
+class PasswordSetup extends ConsumerStatefulWidget {
   const PasswordSetup({super.key});
+
+  @override
+  ConsumerState<PasswordSetup> createState() => _PasswordSetupState();
+}
+
+class _PasswordSetupState extends ConsumerState<PasswordSetup> {
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+
+  String? _passwordError;
+  String? _confirmError;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    final password = _passwordController.text;
+    final confirm = _confirmController.text;
+
+    String? passwordError;
+    String? confirmError;
+
+    if (password.length < 8) {
+      passwordError = 'Minimum 8 characters';
+    }
+    if (confirm.isEmpty) {
+      confirmError = 'Please confirm your password';
+    } else if (passwordError == null && confirm != password) {
+      confirmError = 'Passwords do not match';
+    }
+
+    setState(() {
+      _passwordError = passwordError;
+      _confirmError = confirmError;
+    });
+
+    if (passwordError != null || confirmError != null) return;
+
+    ref
+        .read(signupProvider.notifier)
+        .setSecurity(SecurityMethod.password, password);
+    Navigator.pushNamed(context, '/bio');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,21 +147,23 @@ class PasswordSetup extends StatelessWidget {
                           label: "CREATE PASSWORD",
                           hintText: "Minimum 8 characters",
                           prefixIcon: Icons.lock_outline,
+                          controller: _passwordController,
+                          errorText: _passwordError,
                         ),
                         SizedBox(height: 18),
                         _SecurityField(
                           label: "CONFIRM PASSWORD",
                           hintText: "Re-enter password",
                           prefixIcon: Icons.lock_outline,
+                          controller: _confirmController,
+                          errorText: _confirmError,
                         ),
                         const Spacer(),
                         ScreenButton(
                           buttonText: "Continue",
                           background: colors.primary,
                           foreground: colors.onPrimary,
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/bio');
-                          },
+                          onPressed: _continue,
                         ),
                       ],
                     ),
@@ -175,7 +227,6 @@ class _SecurityMethodItem extends StatelessWidget {
   final String text;
   final bool selected;
   final VoidCallback? onTap;
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -259,11 +310,15 @@ class _SecurityField extends StatelessWidget {
     required this.label,
     required this.hintText,
     required this.prefixIcon,
+    required this.controller,
+    this.errorText,
   });
 
   final String label;
   final String hintText;
   final IconData prefixIcon;
+  final TextEditingController controller;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -282,9 +337,11 @@ class _SecurityField extends StatelessWidget {
         ),
         SizedBox(height: 10),
         TextField(
+          controller: controller,
           obscureText: true,
           style: TextStyle(color: colors.onSurface),
           decoration: InputDecoration(
+            errorText: errorText,
             hintText: hintText,
             hintStyle: TextStyle(
               color: colors.onSurface.withValues(alpha: 0.4),

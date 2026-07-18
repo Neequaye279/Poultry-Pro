@@ -5,6 +5,7 @@ class BiometricCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final bool selected;
   final VoidCallback? onTap;
 
   const BiometricCard({
@@ -12,6 +13,7 @@ class BiometricCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.selected = false,
     this.onTap,
   });
 
@@ -30,7 +32,12 @@ class BiometricCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: colors.onSurface.withValues(alpha: 0.08)),
+            border: Border.all(
+              color: selected
+                  ? colors.primary
+                  : colors.onSurface.withValues(alpha: 0.08),
+              width: selected ? 1.5 : 1.0,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -81,9 +88,11 @@ class BiometricCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Icon(
-                LucideIcons.chevronRight,
+                selected ? LucideIcons.check : LucideIcons.chevronRight,
                 size: 20,
-                color: colors.onSurface.withValues(alpha: 0.35),
+                color: selected
+                    ? colors.primary
+                    : colors.onSurface.withValues(alpha: 0.35),
               ),
             ],
           ),

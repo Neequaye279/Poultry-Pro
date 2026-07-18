@@ -1,18 +1,58 @@
 import 'package:flutter/material.dart';
-import 'package:poultry_pro/view/widgets/progress_stepper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:poultry_pro/view/widgets/progress_stepper.dart';
 import 'package:poultry_pro/view/widgets/biometric_card.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
+import 'package:poultry_pro/view_model/signup_provider.dart';
+import 'package:poultry_pro/view_model/profile_provider.dart';
 
-class Biometrics extends StatelessWidget {
+enum _BiometricChoice { fingerprint, faceId }
+
+class Biometrics extends ConsumerStatefulWidget {
   const Biometrics({super.key});
+
+  @override
+  ConsumerState<Biometrics> createState() => _BiometricsState();
+}
+
+class _BiometricsState extends ConsumerState<Biometrics> {
+  _BiometricChoice? _selected;
+  bool _submitting = false;
+
+  Future<void> _finish({required bool biometricsEnabled}) async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
+    final signup = ref.read(signupProvider);
+
+    ref.read(signupProvider.notifier).setBiometricsEnabled(biometricsEnabled);
+
+    // TODO: replace with real Supabase account creation once wired up.
+    await ref
+        .read(profileProvider.notifier)
+        .updateProfile(
+          name: signup.name,
+          farm: signup.farm,
+          phone: signup.phone,
+          email: signup.email,
+        );
+
+    ref.read(signupProvider.notifier).reset();
+
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final colors = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: colors.surface,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -31,17 +71,17 @@ class Biometrics extends StatelessWidget {
                           height: 40,
                           width: 40,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: colors.primary,
                             borderRadius: BorderRadius.circular(12.0),
                             border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
+                              color: colors.primary,
                               width: 1.0,
                             ),
                           ),
                           child: IconButton(
                             icon: Icon(
                               LucideIcons.chevronLeft,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                              color: colors.onPrimary,
                               size: 20,
                             ),
                             onPressed: () {
@@ -64,7 +104,7 @@ class Biometrics extends StatelessWidget {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  color: Theme.of(context).colorScheme.surface,
+                  color: colors.surface,
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: screenWidth * 0.06,
@@ -77,18 +117,15 @@ class Biometrics extends StatelessWidget {
                           width: 92,
                           height: 92,
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
+                            color: colors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(26),
                           ),
                           child: Icon(
                             LucideIcons.fingerprint,
                             size: 70,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: colors.primary,
                           ),
                         ),
-
                         SizedBox(height: screenHeight * 0.02),
                         Text(
                           "Enable Biometrics",
@@ -107,36 +144,47 @@ class Biometrics extends StatelessWidget {
                               icon: LucideIcons.fingerprint,
                               title: "Fingerprint",
                               subtitle: "Use your fingerprint to log in",
+                              selected:
+                                  _selected == _BiometricChoice.fingerprint,
+                              onTap: () => setState(
+                                () => _selected = _BiometricChoice.fingerprint,
+                              ),
                             ),
                             SizedBox(height: 14),
                             BiometricCard(
                               icon: LucideIcons.user,
                               title: "Face ID",
                               subtitle: "Use Face ID to log in",
+                              selected: _selected == _BiometricChoice.faceId,
+                              onTap: () => setState(
+                                () => _selected = _BiometricChoice.faceId,
+                              ),
                             ),
                           ],
                         ),
                         SizedBox(height: 22),
                         TextButton(
-                          onPressed: () {
-                            // Handle "Skip for now" button press
-                          },
+                          onPressed: _submitting
+                              ? null
+                              : () => _finish(biometricsEnabled: false),
                           child: Text(
                             "Skip for now ->",
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurface,
+                              color: colors.onSurface,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
                         const Spacer(),
                         ScreenButton(
-                          buttonText: "Complete Setup",
-                          background: Theme.of(context).colorScheme.primary,
-                          foreground: Theme.of(context).colorScheme.onPrimary,
-                          onPressed: () {
-                            Navigator.pushNamed(context, 'MainScreen');
-                          },
+                          buttonText: _submitting
+                              ? "Setting up..."
+                              : "Complete Setup",
+                          background: colors.primary,
+                          foreground: colors.onPrimary,
+                          onPressed: (_submitting || _selected == null)
+                              ? null
+                              : () => _finish(biometricsEnabled: true),
                         ),
                       ],
                     ),

@@ -13,46 +13,31 @@ class PinLogin extends StatefulWidget {
 
 class _PinLoginState extends State<PinLogin> {
   final _pinController = TextEditingController();
-  final _confirmPinController = TextEditingController();
 
   bool _obscurePin = true;
-  bool _obscureConfirmPin = true;
   String? _pinError;
-  String? _confirmPinError;
 
   @override
   void dispose() {
     _pinController.dispose();
-    _confirmPinController.dispose();
     super.dispose();
   }
 
   void _submit() {
     final pin = _pinController.text.trim();
-    final confirmPin = _confirmPinController.text.trim();
 
     String? pinError;
-    String? confirmPinError;
-
     if (pin.isEmpty) {
       pinError = 'PIN is required';
     } else if (pin.length != 6) {
       pinError = 'PIN must be 6 digits';
     }
 
-    if (confirmPin.isEmpty) {
-      confirmPinError = 'Please confirm your PIN';
-    } else if (pinError == null && confirmPin != pin) {
-      confirmPinError = 'PINs do not match';
-    }
+    setState(() => _pinError = pinError);
 
-    setState(() {
-      _pinError = pinError;
-      _confirmPinError = confirmPinError;
-    });
+    if (pinError != null) return;
 
-    if (pinError != null || confirmPinError != null) return;
-
+    // TODO: verify pin against stored credential once Supabase Auth is wired.
     Navigator.pushNamed(context, '/main');
   }
 
@@ -124,6 +109,11 @@ class _PinLoginState extends State<PinLogin> {
                           "Enter your PIN",
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Use your 6-digit PIN to log in",
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                         SizedBox(height: screenHeight * 0.03),
                         SecurityMethodToggle(
                           isPinSelected: true,
@@ -143,17 +133,6 @@ class _PinLoginState extends State<PinLogin> {
                           onToggleObscure: () =>
                               setState(() => _obscurePin = !_obscurePin),
                           errorText: _pinError,
-                        ),
-                        const SizedBox(height: 18),
-                        _PinField(
-                          label: "CONFIRM PIN",
-                          hintText: "••••••",
-                          controller: _confirmPinController,
-                          obscureText: _obscureConfirmPin,
-                          onToggleObscure: () => setState(
-                            () => _obscureConfirmPin = !_obscureConfirmPin,
-                          ),
-                          errorText: _confirmPinError,
                         ),
                         const Spacer(),
                         ScreenButton(
