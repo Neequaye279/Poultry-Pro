@@ -94,13 +94,34 @@ class _PinLoginScreenState extends State<PinLoginScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+              Text(
+                'Enter your 4-digit PIN to continue',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
 
-                      Text(
-                        'Enter your PIN',
-                        style: textTheme.headlineSmall?.copyWith(
-                          color: colorScheme.onSurface,
-                        ),
+              const SizedBox(height: 32),
+
+              // PIN dots
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(pinLength, (index) {
+                  final filled = index < _pin.length;
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: filled
+                          ? colorScheme.primary
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: filled
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withValues(alpha: 0.3),
+                        width: 1.5,
                       ),
 
                       const SizedBox(height: 8),

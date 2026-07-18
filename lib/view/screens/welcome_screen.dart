@@ -19,8 +19,8 @@ class WelcomeScreen extends StatelessWidget {
 
               // App logo / icon
               Container(
-                width: 110,
-                height: 110,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
                   color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(28),
@@ -33,17 +33,17 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
                 child: Icon(
-                  Icons.egg_rounded,
-                  color: colorScheme.onPrimary,
+                  Icons.eco_outlined,
+                  color: colorScheme.primary,
                   size: 56,
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 28),
 
               // App name
               Text(
-                'Poultry Pro',
+                'Poultry Farm Manager',
                 style: textTheme.headlineLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -53,41 +53,49 @@ class WelcomeScreen extends StatelessWidget {
 
               // Tagline
               Text(
-                'Manage your flock with ease.\nTrack health, feed, and production in one place.',
+                'Complete farm management - flocks, \nproduction, and finances in one place.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
 
-              const Spacer(flex: 3),
+              const SizedBox(height: 28),
 
               // Feature highlights row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _WelcomeFeature(
-                    icon: Icons.pets_rounded,
-                    label: 'Flock',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  _WelcomeFeature(
-                    icon: Icons.health_and_safety_outlined,
-                    label: 'Health',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                  _WelcomeFeature(
-                    icon: Icons.bar_chart_rounded,
-                    label: 'Records',
-                    colorScheme: colorScheme,
-                    textTheme: textTheme,
-                  ),
-                ],
-              ),
-
-              const Spacer(flex: 2),
+              
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Flocks',
+                              caption: 'Track',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Production',
+                              caption: 'Record',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _WelcomeFeatureCard(
+                              label: 'Finance',
+                              caption: 'Analyse',
+                              colorScheme: colorScheme,
+                              textTheme: textTheme,
+                            ),
+                          ),
+                        ],
+                      ),
+ 
+                      const Spacer(flex: 3),
 
               // Get Started button
               SizedBox(
@@ -106,7 +114,7 @@ class WelcomeScreen extends StatelessWidget {
                     Navigator.of(context).pushReplacementNamed('/piLogin');
                   },
                   child: Text(
-                    'Get Started',
+                    'Log In',
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onPrimary,
                     ),
@@ -129,10 +137,10 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed('/paLogin');
+                    Navigator.of(context).pushNamed('/sudetails');
                   },
                   child: Text(
-                    'Sign in with password',
+                    'Create Account',
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.primary,
                     ),
@@ -140,7 +148,16 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+
+              Text(
+                'Poultry Farm Manager .v1.2',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurface.withOpacity(0.4),
+                ),
+              ),
+
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -149,15 +166,15 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _WelcomeFeature extends StatelessWidget {
-  final IconData icon;
+class _WelcomeFeatureCard extends StatelessWidget {
   final String label;
+  final String caption;
   final ColorScheme colorScheme;
   final TextTheme textTheme;
 
-  const _WelcomeFeature({
-    required this.icon,
+  const _WelcomeFeatureCard({
     required this.label,
+    required this.caption,
     required this.colorScheme,
     required this.textTheme,
   });
@@ -181,8 +198,8 @@ class _WelcomeFeature extends StatelessWidget {
           style: textTheme.labelSmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.6),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
