@@ -54,9 +54,8 @@ class PoultryPro extends ConsumerWidget {
         AppearanceMode.light => ThemeMode.light,
         AppearanceMode.system => ThemeMode.system,
       },
-      home: DetailsScreen(),
-      //initialRoute: '/',
-      /*routes: {
+      initialRoute: '/',
+      routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),
         '/sudetails': (context) => DetailsScreen(),
@@ -64,15 +63,15 @@ class PoultryPro extends ConsumerWidget {
         '/piSetup': (context) => PinSetup(),
         '/paSetup': (context) => PasswordSetup(),
         '/bio': (context) => Biometrics(),
-        '/piLogin': (context) => PinLoginScreen(),
-        '/paLogin': (context) => PasswordLoginScreen(),
+        '/piLogin': (context) => PinLogin(),
+        '/paLogin': (context) => PasswordLogin(),
         '/home': (context) => Home(),
         '/flocks': (context) => Flocks(),
         '/finance': (context) => Finance(),
         '/production': (context) => ProductionScreen(),
         '/settings': (context) => Settings(),
         '/main': (context) => MainScreen(),
-      },*/
+      },
     );
   }
 }

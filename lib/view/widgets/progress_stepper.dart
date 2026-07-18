@@ -30,15 +30,15 @@ class ProgressStepper extends StatelessWidget {
     final isActiveOrCompleted = index <= currentStep;
 
     return Container(
-      width: 28,
-      height: 28,
+      width: 36,
+      height: 36,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: isActiveOrCompleted ? colorScheme.primary : colorScheme.surface,
       ),
       child: Icon(
         icon,
-        size: 14,
+        size: 18,
         color: isActiveOrCompleted
             ? colorScheme.onPrimary
             : colorScheme.onSurface.withValues(alpha: .4),
@@ -51,7 +51,7 @@ class ProgressStepper extends StatelessWidget {
 
     return Expanded(
       child: Container(
-        height: 2,
+        height: 3,
         color: currentStep > index ? colorScheme.primary : colorScheme.surface,
       ),
     );

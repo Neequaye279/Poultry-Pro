@@ -65,111 +65,84 @@ class _PasswordSetupState extends ConsumerState<PasswordSetup> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.06,
             vertical: screenHeight * 0.02,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: colors.primary),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              LucideIcons.chevronLeft,
-                              color: colors.onPrimary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          "Create Account",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: colors.primary),
                     ),
-                    SizedBox(height: screenHeight * 0.02),
-                    ProgressStepper(currentStep: 2),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: colors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.02,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenHeight * 0.02),
-                        Text(
-                          "Set Up Security",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Choose how you'll log in",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _SecurityMethodToggle(isPinSelected: false),
-                        SizedBox(height: screenHeight * 0.03),
-                        _InfoBanner(
-                          text:
-                              "Minimum 8 characters - mix letters and numbers",
-                          background: colors.inversePrimary.withValues(
-                            alpha: 0.08,
-                          ),
-                          foreground: colors.inversePrimary,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _SecurityField(
-                          label: "CREATE PASSWORD",
-                          hintText: "Minimum 8 characters",
-                          prefixIcon: Icons.lock_outline,
-                          controller: _passwordController,
-                          errorText: _passwordError,
-                        ),
-                        SizedBox(height: 18),
-                        _SecurityField(
-                          label: "CONFIRM PASSWORD",
-                          hintText: "Re-enter password",
-                          prefixIcon: Icons.lock_outline,
-                          controller: _confirmController,
-                          errorText: _confirmError,
-                        ),
-                        const Spacer(),
-                        ScreenButton(
-                          buttonText: "Continue",
-                          background: colors.primary,
-                          foreground: colors.onPrimary,
-                          onPressed: _continue,
-                        ),
-                      ],
+                    child: IconButton(
+                      icon: Icon(
+                        LucideIcons.chevronLeft,
+                        color: colors.onPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Create Account",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
               ),
+              SizedBox(height: screenHeight * 0.03),
+              ProgressStepper(currentStep: 2),
+              SizedBox(height: screenHeight * 0.04),
+              Text(
+                "Set Up Security",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: 8),
+              Text(
+                "Choose how you'll log in",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _SecurityMethodToggle(isPinSelected: false),
+              SizedBox(height: screenHeight * 0.03),
+              _InfoBanner(
+                text: "Minimum 8 characters - mix letters and numbers",
+                background: colors.inversePrimary.withValues(alpha: 0.08),
+                foreground: colors.inversePrimary,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _SecurityField(
+                label: "CREATE PASSWORD",
+                hintText: "Minimum 8 characters",
+                prefixIcon: Icons.lock_outline,
+                controller: _passwordController,
+                errorText: _passwordError,
+              ),
+              SizedBox(height: 18),
+              _SecurityField(
+                label: "CONFIRM PASSWORD",
+                hintText: "Re-enter password",
+                prefixIcon: Icons.lock_outline,
+                controller: _confirmController,
+                errorText: _confirmError,
+              ),
+              SizedBox(height: screenHeight * 0.04),
+              ScreenButton(
+                buttonText: "Continue",
+                background: colors.primary,
+                foreground: colors.onPrimary,
+                onPressed: _continue,
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),
@@ -200,9 +173,7 @@ class _SecurityMethodToggle extends StatelessWidget {
             icon: Icons.tag,
             text: "6-Digit PIN",
             selected: isPinSelected,
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/piSetup');
-            },
+            onTap: () => Navigator.pushReplacementNamed(context, '/piSetup'),
           ),
           _SecurityMethodItem(
             icon: Icons.key,
@@ -227,6 +198,7 @@ class _SecurityMethodItem extends StatelessWidget {
   final String text;
   final bool selected;
   final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;

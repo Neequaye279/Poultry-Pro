@@ -64,106 +64,82 @@ class _PinSetupState extends ConsumerState<PinSetup> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.06,
             vertical: screenHeight * 0.02,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: colors.primary),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              LucideIcons.chevronLeft,
-                              color: colors.onPrimary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          "Create Account",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: colors.primary),
                     ),
-                    SizedBox(height: screenHeight * 0.02),
-                    ProgressStepper(currentStep: 2),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: colors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.02,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenHeight * 0.02),
-                        Text(
-                          "Set Up Security",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Choose how you'll log in",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _SecurityMethodToggle(isPinSelected: true),
-                        SizedBox(height: screenHeight * 0.03),
-                        _InfoBanner(
-                          text: "PIN works offline and is faster to enter",
-                          background: colors.primary.withValues(alpha: 0.08),
-                          foreground: colors.primary,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _PinField(
-                          label: "CREATE PIN (6 DIGITS)",
-                          hintText: "••••••",
-                          controller: _pinController,
-                          errorText: _pinError,
-                        ),
-                        SizedBox(height: 18),
-                        _PinField(
-                          label: "CONFIRM PIN",
-                          hintText: "••••••",
-                          controller: _confirmController,
-                          errorText: _confirmError,
-                        ),
-                        const Spacer(),
-                        ScreenButton(
-                          buttonText: "Continue",
-                          background: colors.primary,
-                          foreground: colors.onPrimary,
-                          onPressed: _continue,
-                        ),
-                      ],
+                    child: IconButton(
+                      icon: Icon(
+                        LucideIcons.chevronLeft,
+                        color: colors.onPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Create Account",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
               ),
+              SizedBox(height: screenHeight * 0.03),
+              ProgressStepper(currentStep: 2),
+              SizedBox(height: screenHeight * 0.04),
+              Text(
+                "Set Up Security",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(height: 8),
+              Text(
+                "Choose how you'll log in",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _SecurityMethodToggle(isPinSelected: true),
+              SizedBox(height: screenHeight * 0.03),
+              _InfoBanner(
+                text: "PIN works offline and is faster to enter",
+                background: colors.primary.withValues(alpha: 0.08),
+                foreground: colors.primary,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _PinField(
+                label: "CREATE PIN (6 DIGITS)",
+                hintText: "••••••",
+                controller: _pinController,
+                errorText: _pinError,
+              ),
+              SizedBox(height: 18),
+              _PinField(
+                label: "CONFIRM PIN",
+                hintText: "••••••",
+                controller: _confirmController,
+                errorText: _confirmError,
+              ),
+              SizedBox(height: screenHeight * 0.04),
+              ScreenButton(
+                buttonText: "Continue",
+                background: colors.primary,
+                foreground: colors.onPrimary,
+                onPressed: _continue,
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),
@@ -199,9 +175,7 @@ class _SecurityMethodToggle extends StatelessWidget {
             icon: Icons.key,
             text: "Password",
             selected: !isPinSelected,
-            onTap: () {
-              Navigator.pushReplacementNamed(context, '/paSetup');
-            },
+            onTap: () => Navigator.pushReplacementNamed(context, '/paSetup'),
           ),
         ],
       ),
@@ -312,7 +286,6 @@ class _PinField extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
   final String? errorText;
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;

@@ -50,102 +50,72 @@ class _PinLoginState extends State<PinLogin> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.06,
             vertical: screenHeight * 0.02,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: colors.primary),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              LucideIcons.chevronLeft,
-                              color: colors.onPrimary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Log In",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: colors.primary),
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: colors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.02,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenHeight * 0.02),
-                        Text(
-                          "Enter your PIN",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Use your 6-digit PIN to log in",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        SecurityMethodToggle(
-                          isPinSelected: true,
-                          onSelectPin: () {},
-                          onSelectPassword: () =>
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/paLogin',
-                              ),
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _PinField(
-                          label: "ENTER PIN (6 DIGITS)",
-                          hintText: "••••••",
-                          controller: _pinController,
-                          obscureText: _obscurePin,
-                          onToggleObscure: () =>
-                              setState(() => _obscurePin = !_obscurePin),
-                          errorText: _pinError,
-                        ),
-                        const Spacer(),
-                        ScreenButton(
-                          buttonText: "Continue",
-                          background: colors.primary,
-                          foreground: colors.onPrimary,
-                          onPressed: _submit,
-                        ),
-                      ],
+                    child: IconButton(
+                      icon: Icon(
+                        LucideIcons.chevronLeft,
+                        color: colors.onPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Text("Log In", style: Theme.of(context).textTheme.titleLarge),
+                ],
               ),
+              SizedBox(height: screenHeight * 0.04),
+              Text(
+                "Enter your PIN",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Use your 6-digit PIN to log in",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              SecurityMethodToggle(
+                isPinSelected: true,
+                onSelectPin: () {},
+                onSelectPassword: () =>
+                    Navigator.pushReplacementNamed(context, '/paLogin'),
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _PinField(
+                label: "ENTER PIN (6 DIGITS)",
+                hintText: "••••••",
+                controller: _pinController,
+                obscureText: _obscurePin,
+                onToggleObscure: () =>
+                    setState(() => _obscurePin = !_obscurePin),
+                errorText: _pinError,
+              ),
+              SizedBox(height: screenHeight * 0.04),
+              ScreenButton(
+                buttonText: "Continue",
+                background: colors.primary,
+                foreground: colors.onPrimary,
+                onPressed: _submit,
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),

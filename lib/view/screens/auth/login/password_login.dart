@@ -40,6 +40,7 @@ class _PasswordLoginState extends State<PasswordLogin> {
 
     if (_emailError != null || _passwordError != null) return;
 
+    // TODO: verify email/password against stored credential once Supabase Auth is wired.
     Navigator.pushNamed(context, '/main');
   }
 
@@ -52,103 +53,71 @@ class _PasswordLoginState extends State<PasswordLogin> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.06,
             vertical: screenHeight * 0.02,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          height: 40,
-                          width: 40,
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: colors.primary),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              LucideIcons.chevronLeft,
-                              color: colors.onPrimary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Log In",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
+              Row(
+                children: [
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: colors.primary),
                     ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: colors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.02,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: screenHeight * 0.02),
-                        Text(
-                          "Welcome back",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Sign in with your credentials",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        SecurityMethodToggle(
-                          isPinSelected: false,
-                          onSelectPin: () => Navigator.pushReplacementNamed(
-                            context,
-                            '/piLogin',
-                          ),
-                          onSelectPassword: () {},
-                        ),
-                        SizedBox(height: screenHeight * 0.03),
-                        _EmailField(
-                          controller: _emailController,
-                          errorText: _emailError,
-                        ),
-                        const SizedBox(height: 18),
-                        _PasswordField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          onToggleObscure: _toggleObscure,
-                          errorText: _passwordError,
-                        ),
-                        const Spacer(),
-                        ScreenButton(
-                          buttonText: "Continue",
-                          background: colors.primary,
-                          foreground: colors.onPrimary,
-                          onPressed: _submit,
-                        ),
-                      ],
+                    child: IconButton(
+                      icon: Icon(
+                        LucideIcons.chevronLeft,
+                        color: colors.onPrimary,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Text("Log In", style: Theme.of(context).textTheme.titleLarge),
+                ],
               ),
+              SizedBox(height: screenHeight * 0.04),
+              Text(
+                "Welcome back",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Sign in with your credentials",
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              SecurityMethodToggle(
+                isPinSelected: false,
+                onSelectPin: () =>
+                    Navigator.pushReplacementNamed(context, '/piLogin'),
+                onSelectPassword: () {},
+              ),
+              SizedBox(height: screenHeight * 0.03),
+              _EmailField(controller: _emailController, errorText: _emailError),
+              const SizedBox(height: 18),
+              _PasswordField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                onToggleObscure: _toggleObscure,
+                errorText: _passwordError,
+              ),
+              SizedBox(height: screenHeight * 0.04),
+              ScreenButton(
+                buttonText: "Continue",
+                background: colors.primary,
+                foreground: colors.onPrimary,
+                onPressed: _submit,
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),
@@ -228,6 +197,7 @@ class _PasswordField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

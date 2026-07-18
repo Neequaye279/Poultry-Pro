@@ -73,211 +73,171 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(
             horizontal: screenWidth * 0.06,
             vertical: screenHeight * 0.02,
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        height: 40,
-                        width: 40,
-                        decoration: BoxDecoration(
-                          color: colors.primary,
-                          borderRadius: BorderRadius.circular(12.0),
-                          border: Border.all(color: colors.primary),
-                        ),
-                        child: IconButton(
-                          icon: Icon(
-                            LucideIcons.chevronLeft,
-                            color: colors.onPrimary,
-                            size: 20,
-                          ),
-                          onPressed: () => Navigator.pop(context),
-                        ),
+                  Container(
+                    height: 40,
+                    width: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(color: colors.primary),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        LucideIcons.chevronLeft,
+                        color: colors.onPrimary,
+                        size: 20,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Create Account",
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ],
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
-                  SizedBox(height: screenHeight * 0.025),
-                  const ProgressStepper(currentStep: 1),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Create Account",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                 ],
               ),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: colors.surface,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenWidth * 0.06,
-                      vertical: screenHeight * 0.03,
+              SizedBox(height: screenHeight * 0.03),
+              const ProgressStepper(currentStep: 1),
+              SizedBox(height: screenHeight * 0.04),
+              Container(
+                height: 64,
+                width: 64,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(LucideIcons.mail, color: colors.primary, size: 28),
+              ),
+              SizedBox(height: screenHeight * 0.025),
+              Text(
+                "Verify Your Account",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              _codeSent
+                  ? _CodeSentSubtitle(email: email)
+                  : Text(
+                      "We'll send a code to verify your account",
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: 64,
-                          width: 64,
-                          decoration: BoxDecoration(
-                            color: colors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(
-                            LucideIcons.mail,
-                            color: colors.primary,
-                            size: 28,
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.025),
-                        Text(
-                          "Verify Your Account",
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        _codeSent
-                            ? _CodeSentSubtitle(email: email)
-                            : Text(
-                                "We'll send a code to verify your account",
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                        SizedBox(height: screenHeight * 0.03),
-                        if (_codeSent) ...[
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "4-DIGIT OTP",
-                              style: TextStyle(
-                                color: colors.onSurface.withValues(alpha: 0.62),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _otpController,
-                            keyboardType: TextInputType.number,
-                            maxLength: 4,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            style: TextStyle(color: colors.onSurface),
-                            decoration: InputDecoration(
-                              counterText: '',
-                              errorText: _otpError,
-                              hintText: "Enter code (use 1234)",
-                              hintStyle: TextStyle(
-                                color: colors.onSurface.withValues(alpha: 0.4),
-                              ),
-                              prefixIcon: SizedBox(
-                                width: 48,
-                                child: Center(
-                                  child: Text(
-                                    "#",
-                                    style: TextStyle(
-                                      color: colors.onSurface.withValues(
-                                        alpha: 0.32,
-                                      ),
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: colors.surface,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: colors.onSurface.withValues(
-                                    alpha: 0.10,
-                                  ),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(color: colors.primary),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: GestureDetector(
-                              onTap: _resendCode,
-                              child: Text(
-                                "Resend code",
-                                style: TextStyle(
-                                  color: colors.primary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: colors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                LucideIcons.info,
-                                size: 18,
-                                color: colors.primary,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      color: colors.primary,
-                                      fontSize: 13,
-                                    ),
-                                    children: const [
-                                      TextSpan(text: "Demo tip: use OTP "),
-                                      TextSpan(
-                                        text: "1234",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        ScreenButton(
-                          buttonText: _codeSent
-                              ? "Continue"
-                              : "Send Verification Code",
-                          background: colors.primary,
-                          foreground: colors.onPrimary,
-                          onPressed: _codeSent ? _continue : _sendCode,
-                        ),
-                      ],
+              SizedBox(height: screenHeight * 0.03),
+              if (_codeSent) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "4-DIGIT OTP",
+                    style: TextStyle(
+                      color: colors.onSurface.withValues(alpha: 0.62),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _otpController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 4,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  style: TextStyle(color: colors.onSurface),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    errorText: _otpError,
+                    hintText: "Enter code (use 1234)",
+                    hintStyle: TextStyle(
+                      color: colors.onSurface.withValues(alpha: 0.4),
+                    ),
+                    prefixIcon: SizedBox(
+                      width: 48,
+                      child: Center(
+                        child: Text(
+                          "#",
+                          style: TextStyle(
+                            color: colors.onSurface.withValues(alpha: 0.32),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: colors.surface,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: colors.onSurface.withValues(alpha: 0.10),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: colors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: _resendCode,
+                    child: Text(
+                      "Resend code",
+                      style: TextStyle(
+                        color: colors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(LucideIcons.info, size: 18, color: colors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(color: colors.primary, fontSize: 13),
+                          children: const [
+                            TextSpan(text: "Demo tip: use OTP "),
+                            TextSpan(
+                              text: "1234",
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              SizedBox(height: screenHeight * 0.04),
+              ScreenButton(
+                buttonText: _codeSent ? "Continue" : "Send Verification Code",
+                background: colors.primary,
+                foreground: colors.onPrimary,
+                onPressed: _codeSent ? _continue : _sendCode,
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),
@@ -290,6 +250,7 @@ class _CodeSentSubtitle extends StatelessWidget {
   const _CodeSentSubtitle({required this.email});
 
   final String email;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
