@@ -54,8 +54,9 @@ class PoultryPro extends ConsumerWidget {
         AppearanceMode.light => ThemeMode.light,
         AppearanceMode.system => ThemeMode.system,
       },
-      initialRoute: '/',
-      routes: {
+      home: WelcomeScreen(),
+      //initialRoute: '/',
+      /*routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),
         '/sudetails': (context) => DetailsScreen(),
@@ -71,7 +72,7 @@ class PoultryPro extends ConsumerWidget {
         '/production': (context) => ProductionScreen(),
         '/settings': (context) => Settings(),
         '/main': (context) => MainScreen(),
-      },
+      },*/
     );
   }
 }
