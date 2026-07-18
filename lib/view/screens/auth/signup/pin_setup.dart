@@ -1,11 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:poultry_pro/model/signup_data.dart';
 import 'package:poultry_pro/view/widgets/progress_stepper.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
+import 'package:poultry_pro/view_model/signup_provider.dart';
 
-class PinSetup extends StatelessWidget {
+class PinSetup extends ConsumerStatefulWidget {
   const PinSetup({super.key});
+
+  @override
+  ConsumerState<PinSetup> createState() => _PinSetupState();
+}
+
+class _PinSetupState extends ConsumerState<PinSetup> {
+  final _pinController = TextEditingController();
+  final _confirmController = TextEditingController();
+
+  String? _pinError;
+  String? _confirmError;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    final pin = _pinController.text.trim();
+    final confirm = _confirmController.text.trim();
+
+    String? pinError;
+    String? confirmError;
+
+    if (pin.length != 6) {
+      pinError = 'PIN must be 6 digits';
+    }
+    if (confirm.isEmpty) {
+      confirmError = 'Please confirm your PIN';
+    } else if (pinError == null && confirm != pin) {
+      confirmError = 'PINs do not match';
+    }
+
+    setState(() {
+      _pinError = pinError;
+      _confirmError = confirmError;
+    });
+
+    if (pinError != null || confirmError != null) return;
+
+    ref.read(signupProvider.notifier).setSecurity(SecurityMethod.pin, pin);
+    Navigator.pushNamed(context, '/bio');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +62,7 @@ class PinSetup extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colors.surface,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(
@@ -94,17 +142,22 @@ class PinSetup extends StatelessWidget {
                         _PinField(
                           label: "CREATE PIN (6 DIGITS)",
                           hintText: "••••••",
+                          controller: _pinController,
+                          errorText: _pinError,
                         ),
                         SizedBox(height: 18),
-                        _PinField(label: "CONFIRM PIN", hintText: "••••••"),
+                        _PinField(
+                          label: "CONFIRM PIN",
+                          hintText: "••••••",
+                          controller: _confirmController,
+                          errorText: _confirmError,
+                        ),
                         const Spacer(),
                         ScreenButton(
                           buttonText: "Continue",
                           background: colors.primary,
                           foreground: colors.onPrimary,
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/bio');
-                          },
+                          onPressed: _continue,
                         ),
                       ],
                     ),
@@ -248,10 +301,17 @@ class _InfoBanner extends StatelessWidget {
 }
 
 class _PinField extends StatelessWidget {
-  const _PinField({required this.label, required this.hintText});
+  const _PinField({
+    required this.label,
+    required this.hintText,
+    required this.controller,
+    this.errorText,
+  });
 
   final String label;
   final String hintText;
+  final TextEditingController controller;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -270,6 +330,7 @@ class _PinField extends StatelessWidget {
         ),
         SizedBox(height: 10),
         TextField(
+          controller: controller,
           obscureText: true,
           keyboardType: TextInputType.number,
           maxLength: 6,
@@ -277,6 +338,7 @@ class _PinField extends StatelessWidget {
           style: TextStyle(color: colors.onSurface),
           decoration: InputDecoration(
             counterText: '',
+            errorText: errorText,
             hintText: hintText,
             hintStyle: TextStyle(
               color: colors.onSurface.withValues(alpha: 0.4),

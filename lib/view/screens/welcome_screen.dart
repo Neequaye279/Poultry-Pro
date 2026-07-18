@@ -12,16 +12,16 @@ class WelcomeScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.0),
+            padding: EdgeInsets.symmetric(horizontal: 18.0),
             child: Column(
               children: [
-                SizedBox(height: 60.0),
+                SizedBox(height: 100.0),
                 WelcomeHeader(),
                 SizedBox(height: 10),
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(22),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.08),
@@ -58,19 +58,25 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: 22.0),
+                SizedBox(height: 100.0),
                 ScreenButton(
                   buttonText: "Log In",
                   background: Theme.of(context).colorScheme.primary,
                   foreground: Colors.white,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/piLogin');
+                  },
                 ),
-                SizedBox(height: 4.0),
+                SizedBox(height: 15.0),
                 ScreenButton(
                   buttonText: "Create Account",
-                  background: Theme.of(context).colorScheme.surface,
+                  background: Theme.of(
+                    context,
+                  ).colorScheme.surface.withValues(alpha: 3.5),
                   foreground: Theme.of(context).colorScheme.primary,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/sudetails');
+                  },
                 ),
               ],
             ),
