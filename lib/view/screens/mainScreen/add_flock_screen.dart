@@ -127,7 +127,7 @@ class _AddFlockScreenState extends ConsumerState<AddFlockScreen> {
                   _buildLabel(context, 'Age'),
                   const SizedBox(height: 8),
                   CustomTextfield(
-                    hintText: '5yrs',
+                    hintText: '5weeks',
                     keyboardType: TextInputType.number,
                     controller: ad.ageController,
                     validator: (value) => ad.validateAge(),

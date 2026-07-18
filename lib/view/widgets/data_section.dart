@@ -5,13 +5,13 @@ import 'package:poultry_pro/view/widgets/settings_row.dart';
 class DataSection extends StatelessWidget {
   final VoidCallback onCloudBackup;
   final VoidCallback onExportReports;
-  final VoidCallback onArchivedFlocks;
+  final String cloudBackupSubtitle;
 
   const DataSection({
     super.key,
     required this.onCloudBackup,
     required this.onExportReports,
-    required this.onArchivedFlocks,
+    required this.cloudBackupSubtitle,
   });
 
   @override
@@ -41,32 +41,8 @@ class DataSection extends StatelessWidget {
               SettingsRow(
                 icon: LucideIcons.cloud,
                 title: 'Cloud Backup',
-                subtitle: 'Backup to remote storage',
+                subtitle: cloudBackupSubtitle,
                 onTap: onCloudBackup,
-              ),
-              Divider(
-                height: 1,
-                color: Theme.of(
-                  context,
-                ).colorScheme.scrim.withValues(alpha: 1.2),
-              ),
-              SettingsRow(
-                icon: LucideIcons.download,
-                title: 'Export Reports',
-                subtitle: 'CSV & Excel',
-                onTap: onExportReports,
-              ),
-              Divider(
-                height: 1,
-                color: Theme.of(
-                  context,
-                ).colorScheme.scrim.withValues(alpha: 1.2),
-              ),
-              SettingsRow(
-                icon: LucideIcons.archive,
-                title: 'Archived Flocks',
-                subtitle: 'View past records',
-                onTap: onArchivedFlocks,
               ),
             ],
           ),

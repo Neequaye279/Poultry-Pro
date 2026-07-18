@@ -6,15 +6,17 @@ class DashboardHeader extends StatelessWidget {
     super.key,
     required this.farmName,
     required this.netProfit,
-    required this.percentChange,
+    required this.greeting,
+    required this.profitMarginPct,
     required this.monthLabel,
     this.hasNotification = false,
     this.onNotificationTap,
   });
 
-  final String farmName;
+  final String? farmName;
+  final String greeting;
+  final double profitMarginPct;
   final String netProfit;
-  final double percentChange;
   final String monthLabel;
   final bool hasNotification;
   final VoidCallback? onNotificationTap;
@@ -39,7 +41,7 @@ class DashboardHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'GOOD MORNING',
+                      greeting.toUpperCase(),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -48,14 +50,23 @@ class DashboardHeader extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      farmName,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: colors.onPrimary,
-                      ),
-                    ),
+                    farmName == null
+                        ? SizedBox(
+                            height: 30,
+                            width: 30,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: colors.onPrimary,
+                            ),
+                          )
+                        : Text(
+                            farmName!,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: colors.onPrimary,
+                            ),
+                          ),
                   ],
                 ),
               ),
@@ -80,8 +91,8 @@ class DashboardHeader extends StatelessWidget {
           const SizedBox(height: 20),
           _NetProfitCard(
             netProfit: netProfit,
-            percentChange: percentChange,
             monthLabel: monthLabel,
+            profitMarginPct: profitMarginPct,
             fgColor: colors.onPrimary,
             cardColor: colors.onPrimary.withValues(alpha: 0.10),
           ),
@@ -94,22 +105,20 @@ class DashboardHeader extends StatelessWidget {
 class _NetProfitCard extends StatelessWidget {
   const _NetProfitCard({
     required this.netProfit,
-    required this.percentChange,
     required this.monthLabel,
     required this.fgColor,
     required this.cardColor,
+    required this.profitMarginPct,
   });
 
   final String netProfit;
-  final double percentChange;
+  final double profitMarginPct;
   final String monthLabel;
   final Color fgColor;
   final Color cardColor;
 
   @override
   Widget build(BuildContext context) {
-    final isUp = percentChange >= 0;
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -143,22 +152,12 @@ class _NetProfitCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Icon(
-                      isUp ? LucideIcons.arrowUp : LucideIcons.arrowDown,
-                      size: 14,
-                      color: fgColor.withValues(alpha: 0.85),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${percentChange.abs().toStringAsFixed(0)}% vs last month',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: fgColor.withValues(alpha: 0.85),
-                      ),
-                    ),
-                  ],
+                Text(
+                  '${profitMarginPct.toStringAsFixed(0)}% profit margin',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: fgColor.withValues(alpha: 0.85),
+                  ),
                 ),
               ],
             ),

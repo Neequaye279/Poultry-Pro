@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/model/app_settings.dart';
+import 'package:poultry_pro/view_model/app_settings_provider.dart';
 import 'package:poultry_pro/view/Theme/color_theme.dart';
 import 'package:poultry_pro/view/Theme/text_theme.dart';
+import 'test_entry.dart';
 import 'view/screens/splash_screen.dart';
 import 'view/screens/welcome_screen.dart';
 import 'view/screens/auth/signup/biometrics.dart';
@@ -22,11 +25,12 @@ void main() {
   runApp(ProviderScope(child: PoultryPro()));
 }
 
-class PoultryPro extends StatelessWidget {
+class PoultryPro extends ConsumerWidget {
   const PoultryPro({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appSettings = ref.watch(appSettingsProvider);
     return MaterialApp(
       title: "Poultry Pro",
       debugShowCheckedModeBanner: false,
@@ -40,9 +44,14 @@ class PoultryPro extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFF0D1117),
         textTheme: textTheme,
       ),
-      themeMode: ThemeMode.system,
-      initialRoute: '/',
-      routes: {
+      themeMode: switch (appSettings.appearanceMode) {
+        AppearanceMode.dark => ThemeMode.dark,
+        AppearanceMode.light => ThemeMode.light,
+        AppearanceMode.system => ThemeMode.system,
+      },
+      home: MainScreen(),
+      // initialRoute: '/',
+      /* routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),
         '/sudetails': (context) => DetailsScreen(),
@@ -58,7 +67,7 @@ class PoultryPro extends StatelessWidget {
         '/production': (context) => ProductionScreen(),
         '/settings': (context) => Settings(),
         '/main': (context) => MainScreen(),
-      },
+      },*/
     );
   }
 }

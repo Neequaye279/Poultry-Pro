@@ -1,17 +1,118 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/view/widgets/dashboard_header.dart';
 import 'package:poultry_pro/view/widgets/stat_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:poultry_pro/view/widgets/lowfeed_alert.dart';
 import 'package:poultry_pro/view/widgets/weekly_eggs_card.dart';
 import 'package:poultry_pro/view/widgets/recent_activity_card.dart';
+import 'package:poultry_pro/view_model/flock_viewmodel.dart';
+import 'package:poultry_pro/view_model/production_viewmodel.dart';
+import 'package:poultry_pro/view_model/profile_provider.dart';
+import 'package:poultry_pro/view_model/profile_provider.dart';
+import 'package:poultry_pro/view_model/dashboard_finance.dart';
+import 'package:poultry_pro/model/production_category.dart';
+import 'package:poultry_pro/model/production.dart';
 
-class Home extends StatelessWidget {
+String _greeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Good Morning';
+  if (hour < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
+IconData _iconFor(ProductionType category) {
+  switch (category) {
+    case ProductionType.egg:
+      return LucideIcons.egg;
+    case ProductionType.feed:
+      return LucideIcons.utensils;
+    case ProductionType.vaccines:
+      return LucideIcons.syringe;
+    case ProductionType.mortality:
+      return LucideIcons.skull;
+  }
+}
+
+String _activityTitle(Production entry) {
+  return switch (entry) {
+    EggProduction() => '${entry.collected} eggs recorded',
+    FeedProduction() =>
+      '${entry.amountAdded.toStringAsFixed(0)} kg feed purchased',
+    VaccineProduction() =>
+      '${entry.vaccineName} vaccine · ${entry.dosesAdministered} doses',
+    MortalityProduction() =>
+      '${entry.dead} dead${entry.missing > 0 ? ' · ${entry.missing} missing' : ''}',
+  };
+}
+
+String _activitySubtitle(DateTime date) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final entryDate = DateTime(date.year, date.month, date.day);
+  final diff = today.difference(entryDate).inDays;
+
+  if (diff == 0) {
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return 'Today, $hour:$minute';
+  }
+  if (diff == 1) return 'Yesterday';
+  if (diff < 7) return '$diff days ago';
+  return '${date.day}/${date.month}/${date.year}';
+}
+
+String _formatNumber(int n) {
+  return n.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (match) => '${match[1]},',
+  );
+}
+
+String _currentMonthLabel() {
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  final now = DateTime.now();
+  return '${months[now.month - 1]} ${now.year}';
+}
+
+class Home extends ConsumerWidget {
   const Home({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final int daysUntilOut = 4;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(profileProvider);
+    final summary = ref.watch(monthlyFinanceSummaryProvider);
+    final feedRemaining = ref.watch(latestFeedRemainingProvider);
+    final daysOfFeedLeft = ref.watch(daysOfFeedRemainingProvider);
+    final totalBirds = ref.watch(totalBirdsProvider);
+    final activeFlocks = ref.watch(activeFlocksCountProvider);
+    final todaysEggs = ref.watch(todaysEggsProvider);
+    final weeklyMortalityDead = ref.watch(weeklyMortalityDeadProvider);
+    final eggsDayChange = ref.watch(eggsDayOverDayChangeProvider);
+    final weeklyEggs = ref.watch(weeklyEggsByDayProvider);
+    final weeklyEggsTotal = ref.watch(weeklyEggsTotalProvider);
+    final eggsWeekChange = ref.watch(eggsWeekOverWeekChangeProvider);
+    final recentActivity = ref.watch(recentActivityProvider);
+    final today = DateTime.now();
+    final todayIndex = today.weekday - 1;
+
+    final profitMargin = summary.revenue == 0
+        ? 0.0
+        : (summary.netProfit / summary.revenue * 100);
+
     final colors = Theme.of(context).colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -23,10 +124,11 @@ class Home extends StatelessWidget {
           child: Column(
             children: [
               DashboardHeader(
-                farmName: "Sunrise Poultry Farm",
-                netProfit: "GHS 4,820",
-                percentChange: 4,
-                monthLabel: "June 2026",
+                greeting: _greeting(),
+                farmName: profile?.farm,
+                netProfit: "GHS ${summary.netProfit.toStringAsFixed(0)}",
+                monthLabel: _currentMonthLabel(),
+                profitMarginPct: profitMargin,
               ),
               SizedBox(height: screenHeight * 0.025),
               Padding(
@@ -39,8 +141,9 @@ class Home extends StatelessWidget {
                         Expanded(
                           child: StatCard(
                             title: "TOTAL BIRDS",
-                            value: "1,240",
-                            stat: "4 active flocks",
+                            value: _formatNumber(totalBirds),
+                            stat:
+                                "$activeFlocks active flock${activeFlocks == 1 ? '' : 's'}",
                             icon: LucideIcons.feather,
                             iconColor: colors.primary,
                           ),
@@ -49,8 +152,10 @@ class Home extends StatelessWidget {
                         Expanded(
                           child: StatCard(
                             title: "EGGS TODAY",
-                            value: "318",
-                            stat: "4% vs yesterday",
+                            value: "$todaysEggs",
+                            stat: eggsDayChange == 0
+                                ? "No change vs last week"
+                                : "${eggsDayChange >= 0 ? '↑' : '↓'} ${eggsDayChange.abs().toStringAsFixed(0)}% vs yesterday",
                             icon: LucideIcons.egg,
                             iconColor: colors.primary,
                           ),
@@ -63,8 +168,14 @@ class Home extends StatelessWidget {
                         Expanded(
                           child: StatCard(
                             title: "FEED STOCK",
-                            value: "420 kg",
-                            stat: "12 days left",
+                            value: feedRemaining == null
+                                ? "0 kg"
+                                : "${feedRemaining.round()} kg",
+                            stat: daysOfFeedLeft == null
+                                ? (feedRemaining == null
+                                      ? "No feed logged"
+                                      : "Log again to estimate")
+                                : "~${daysOfFeedLeft.round()} days left",
                             icon: LucideIcons.utensils,
                             iconColor: colors.secondary,
                           ),
@@ -73,7 +184,7 @@ class Home extends StatelessWidget {
                         Expanded(
                           child: StatCard(
                             title: "MORTALITY",
-                            value: "3",
+                            value: "$weeklyMortalityDead",
                             stat: "This week",
                             icon: LucideIcons.skull,
                             iconColor: colors.error,
@@ -82,19 +193,29 @@ class Home extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    LowfeedAlert(
-                      flockName: "Broiler Flock A",
-                      restockMessage: "restock in $daysUntilOut days.",
-                      onTap: () {},
-                    ),
+                    if (daysOfFeedLeft != null && daysOfFeedLeft <= 5)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: screenHeight * 0.02),
+                        child: LowfeedAlert(
+                          flockName: "Feed stock",
+                          restockMessage:
+                              "restock in ~${daysOfFeedLeft.round()} days.",
+                          onTap: () {},
+                        ),
+                      ),
                     SizedBox(height: screenHeight * 0.02),
                     WeeklyEggsCard(
                       dayLabels: const ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-                      values: const [180, 260, 220, 270, 230, 320, 200],
-                      highlightedIndex: 5,
-                      totalEggs: 1908,
-                      percentChange: 8,
-                      onFullReportTap: () {},
+                      values: weeklyEggs,
+                      highlightedIndex: todayIndex,
+                      totalEggs: weeklyEggsTotal,
+                      percentChange: eggsWeekChange,
+                      onFullReportTap: () {
+                        ref
+                            .read(productionCategoryProvider.notifier)
+                            .setCategory(ProductionType.egg);
+                        Navigator.pushNamed(context, '/production');
+                      },
                     ),
                     SizedBox(height: screenHeight * 0.025),
                     Text(
@@ -107,28 +228,30 @@ class Home extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.01),
-                    RecentActivityCard(
-                      items: [
-                        ActivityItem(
-                          icon: LucideIcons.egg,
-                          title: "318 eggs recorded",
-                          subtitle: "Today, 7:12 AM",
-                          onTap: () {},
+                    if (recentActivity.isEmpty)
+                      Text(
+                        "No activity yet",
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 14.0,
                         ),
-                        ActivityItem(
-                          icon: LucideIcons.syringe,
-                          title: "Newcastle vaccine — Flock B",
-                          subtitle: "Yesterday",
-                          onTap: () {},
-                        ),
-                        ActivityItem(
-                          icon: LucideIcons.utensils,
-                          title: "50 kg feed purchased",
-                          subtitle: "Yesterday",
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
+                      )
+                    else
+                      RecentActivityCard(
+                        items: recentActivity.map((entry) {
+                          return ActivityItem(
+                            icon: _iconFor(categoryOf(entry)),
+                            title: _activityTitle(entry),
+                            subtitle: _activitySubtitle(entry.date),
+                            onTap: () {
+                              ref
+                                  .read(productionCategoryProvider.notifier)
+                                  .setCategory(categoryOf(entry));
+                              Navigator.pushNamed(context, '/production');
+                            },
+                          );
+                        }).toList(),
+                      ),
                     SizedBox(height: screenHeight * 0.012),
                   ],
                 ),

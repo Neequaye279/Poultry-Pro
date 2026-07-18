@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/model/flock.dart';
 import 'package:poultry_pro/model/flock_category.dart';
+import 'package:poultry_pro/model/status_category.dart';
 
 class FlockViewmodeNotifier extends Notifier<List<Flock>> {
   @override
@@ -47,4 +48,19 @@ class FlockViewmodeNotifier extends Notifier<List<Flock>> {
 
 final flockProvider = NotifierProvider<FlockViewmodeNotifier, List<Flock>>(() {
   return FlockViewmodeNotifier();
+});
+
+final totalBirdsProvider = Provider<int>((ref) {
+  final flocks = ref.watch(flockProvider);
+  return flocks.fold<int>(0, (sum, f) => sum + f.currentBirdCount);
+});
+
+final totalFlocksProvider = Provider<int>((ref) {
+  final flocks = ref.watch(flockProvider);
+  return flocks.length;
+});
+
+final activeFlocksCountProvider = Provider<int>((ref) {
+  final flocks = ref.watch(flockProvider);
+  return flocks.where((f) => f.status == FlockStatus.active).length;
 });

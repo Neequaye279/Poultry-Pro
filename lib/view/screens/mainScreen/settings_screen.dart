@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:poultry_pro/view/widgets/profile_card.dart';
 import 'package:poultry_pro/view/widgets/account_section.dart';
@@ -6,22 +7,22 @@ import 'package:poultry_pro/view/widgets/change_pin_content.dart';
 import 'package:poultry_pro/view/widgets/preferences_section.dart';
 import 'package:poultry_pro/view/widgets/data_section.dart';
 import 'package:poultry_pro/view/widgets/support_section.dart';
+import 'package:poultry_pro/view_model/profile_provider.dart';
+import 'package:poultry_pro/view_model/app_settings_provider.dart';
+import 'package:poultry_pro/model/backup.dart';
+import 'package:poultry_pro/view_model/backup_provider.dart';
 
-class Settings extends StatefulWidget {
+class Settings extends ConsumerStatefulWidget {
   const Settings({super.key});
 
   @override
-  State<Settings> createState() => _SettingsState();
+  ConsumerState<Settings> createState() => _SettingsState();
 }
 
-class _SettingsState extends State<Settings> {
+class _SettingsState extends ConsumerState<Settings> {
   bool _editingProfile = false;
   bool _showChangePin = false;
   bool _showAppearance = false;
-
-  bool _notificationsEnabled = true;
-  bool _biometricsEnabled = true;
-  String _appearanceMode = 'light';
 
   String _farmerName = 'Eliakim Neequaye';
   String _farmName = 'Sunrise Poultry Farm';
@@ -35,6 +36,31 @@ class _SettingsState extends State<Settings> {
   late TextEditingController _farmController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+
+  String _backupSubtitle(BackupState backup) {
+    switch (backup.status) {
+      case SyncStatus.idle:
+        return 'Backup to remote storage';
+      case SyncStatus.syncing:
+        return 'Backing up...';
+      case SyncStatus.synced:
+        final t = backup.lastSyncedAt!;
+        return 'Last Synced ${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+      case SyncStatus.failed:
+        return 'Sync failed - tap tp retry';
+    }
+  }
+
+  Future<void> _runBackup() async {
+    final backup = ref.read(backupProvider);
+    if (backup.status == SyncStatus.syncing) return;
+
+    ref.read(backupProvider.notifier).startSyncing();
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    ref.read(backupProvider.notifier).markSynced();
+  }
 
   @override
   void initState() {
@@ -118,6 +144,13 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final profile = ref.watch(profileProvider);
+    final appSettings = ref.watch(appSettingsProvider);
+    final backup = ref.watch(backupProvider);
+
+    if (profile == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -343,9 +376,10 @@ class _SettingsState extends State<Settings> {
                       showChangePin: _showChangePin,
                       onToggleProfileInfo: _toggleEdit,
                       onToggleChangePin: _toggleChangePinSection,
-                      biometricsEnabled: _biometricsEnabled,
-                      onBiometricsChanged: (v) =>
-                          setState(() => _biometricsEnabled = v),
+                      biometricsEnabled: appSettings.biometricsEnabled,
+                      onBiometricsChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .setBiometricsEnabled(v),
                       changePinContent: ChangePinContent(
                         onCancel: () => setState(() => _showChangePin = false),
                         onSave: (currentPin, newPin) {
@@ -358,22 +392,24 @@ class _SettingsState extends State<Settings> {
                     const SizedBox(height: 16),
 
                     PreferencesSection(
-                      notificationsEnabled: _notificationsEnabled,
-                      onNotificationsChanged: (v) =>
-                          setState(() => _notificationsEnabled = v),
+                      notificationsEnabled: appSettings.notificationsEnabled,
+                      onNotificationsChanged: (v) => ref
+                          .read(appSettingsProvider.notifier)
+                          .setNotificationsEnabled(v),
                       showAppearance: _showAppearance,
                       onToggleAppearance: _toggleAppearanceSection,
-                      appearanceMode: _appearanceMode,
-                      onAppearanceModeChanged: (mode) =>
-                          setState(() => _appearanceMode = mode),
+                      appearanceMode: appSettings.appearanceMode,
+                      onAppearanceModeChanged: (mode) => ref
+                          .read(appSettingsProvider.notifier)
+                          .setAppearanceMode(mode),
                     ),
 
                     const SizedBox(height: 16),
 
                     DataSection(
-                      onCloudBackup: () {},
+                      onCloudBackup: _runBackup,
+                      cloudBackupSubtitle: _backupSubtitle(backup),
                       onExportReports: () {},
-                      onArchivedFlocks: () {},
                     ),
 
                     const SizedBox(height: 16),

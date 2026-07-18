@@ -34,7 +34,7 @@ class RecentRecordTile extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 14),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Column(
@@ -47,23 +47,19 @@ class RecentRecordTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Text(
-                    //   '$category',
-                    //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    //     color: Theme.of(
-                    //       context,
-                    //     ).colorScheme.onSurface.withValues(alpha: 0.5),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
-              Text(
-                formatRelativeDate(date),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.5),
+              const SizedBox(width: 12),
+              Padding(
+                padding: const EdgeInsets.only(top: 2.0),
+                child: Text(
+                  formatRelativeDate(date),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
                 ),
               ),
             ],

@@ -111,7 +111,7 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                 Text(
                   'Sign in with your email and password',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
 
@@ -135,13 +135,13 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'you@example.com',
                     hintStyle: textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.4),
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     filled: true,
-                    fillColor: colorScheme.onSurface.withOpacity(0.04),
+                    fillColor: colorScheme.onSurface.withValues(alpha: 0.04),
                     prefixIcon: Icon(
                       Icons.email_outlined,
-                      color: colorScheme.onSurface.withOpacity(0.5),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -149,7 +149,10 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 1.5,
+                      ),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -179,13 +182,13 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                   decoration: InputDecoration(
                     hintText: 'Enter your password',
                     hintStyle: textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.4),
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     filled: true,
-                    fillColor: colorScheme.onSurface.withOpacity(0.04),
+                    fillColor: colorScheme.onSurface.withValues(alpha: 0.04),
                     prefixIcon: Icon(
                       Icons.lock_outline_rounded,
-                      color: colorScheme.onSurface.withOpacity(0.5),
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                     suffixIcon: IconButton(
                       onPressed: () {
@@ -195,7 +198,7 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                         _obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: colorScheme.onSurface.withOpacity(0.5),
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                     border: OutlineInputBorder(
@@ -204,7 +207,10 @@ class _PasswordLoginScreenState extends State<PasswordLoginScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 1.5,
+                      ),
                     ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),

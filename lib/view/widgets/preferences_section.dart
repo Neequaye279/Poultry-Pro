@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:poultry_pro/model/app_settings.dart';
 import 'package:poultry_pro/view/widgets/settings_row.dart';
 
 class PreferencesSection extends StatelessWidget {
@@ -7,8 +8,8 @@ class PreferencesSection extends StatelessWidget {
   final ValueChanged<bool> onNotificationsChanged;
   final bool showAppearance;
   final VoidCallback onToggleAppearance;
-  final String appearanceMode;
-  final ValueChanged<String> onAppearanceModeChanged;
+  final AppearanceMode appearanceMode;
+  final ValueChanged<AppearanceMode> onAppearanceModeChanged;
 
   const PreferencesSection({
     super.key,
@@ -100,13 +101,15 @@ class PreferencesSection extends StatelessWidget {
                 ).colorScheme.scrim.withValues(alpha: 1.2),
               ),
               SettingsRow(
-                icon: appearanceMode == 'dark'
+                icon: appearanceMode == AppearanceMode.dark
                     ? LucideIcons.moon
+                    : appearanceMode == AppearanceMode.system
+                    ? LucideIcons.monitor
                     : LucideIcons.sun,
                 title: 'Appearance',
-                subtitle: appearanceMode == 'dark'
+                subtitle: appearanceMode == AppearanceMode.dark
                     ? 'Dark mode'
-                    : appearanceMode == 'system'
+                    : appearanceMode == AppearanceMode.system
                     ? 'Match system'
                     : 'Light mode',
                 onTap: onToggleAppearance,
@@ -121,7 +124,7 @@ class PreferencesSection extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
-                  child: RadioGroup<String>(
+                  child: RadioGroup<AppearanceMode>(
                     groupValue: appearanceMode,
                     onChanged: (v) {
                       if (v != null) onAppearanceModeChanged(v);
@@ -129,11 +132,17 @@ class PreferencesSection extends StatelessWidget {
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _AppearanceOption(label: 'Light mode', value: 'light'),
-                        _AppearanceOption(label: 'Dark mode', value: 'dark'),
+                        _AppearanceOption(
+                          label: 'Light mode',
+                          value: AppearanceMode.light,
+                        ),
+                        _AppearanceOption(
+                          label: 'Dark mode',
+                          value: AppearanceMode.dark,
+                        ),
                         _AppearanceOption(
                           label: 'Match system',
-                          value: 'system',
+                          value: AppearanceMode.system,
                         ),
                       ],
                     ),
@@ -150,13 +159,13 @@ class PreferencesSection extends StatelessWidget {
 
 class _AppearanceOption extends StatelessWidget {
   final String label;
-  final String value;
+  final AppearanceMode value;
 
   const _AppearanceOption({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return RadioListTile<String>(
+    return RadioListTile<AppearanceMode>(
       contentPadding: EdgeInsets.zero,
       title: Text(label),
       value: value,
