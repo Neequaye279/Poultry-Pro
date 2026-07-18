@@ -1,28 +1,45 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/data/production_repository.dart';
 import 'package:poultry_pro/model/production.dart';
 import 'package:poultry_pro/model/production_category.dart';
 
-class ProductionViewmodel extends Notifier<List<Production>> {
+class ProductionViewmodel extends AsyncNotifier<List<Production>> {
+  final _repo = ProductionRepository();
+
   @override
-  List<Production> build() {
-    return [];
+  Future<List<Production>> build() async {
+    return _repo.getAll();
   }
 
-  void addProduction(Production production) {
-    state = [...state, production];
+  Future<void> addProduction(Production production) async {
+    final previous = await future;
+    state = AsyncData([...previous, production]);
+    try {
+      await _repo.insert(production);
+    } catch (e) {
+      state = AsyncData(previous);
+      rethrow;
+    }
   }
 
-  void removeProduction(String id) {
-    state = state.where((p) => p.id != id).toList();
+  Future<void> removeProduction(String id) async {
+    final previous = await future;
+    state = AsyncData(previous.where((p) => p.id != id).toList());
+    try {
+      await _repo.delete(id);
+    } catch (e) {
+      state = AsyncData(previous);
+      rethrow;
+    }
   }
 
-  void undoRemove(Production production) {
-    state = [...state, production];
+  Future<void> undoRemove(Production production) async {
+    await addProduction(production);
   }
 }
 
 final productionProvider =
-    NotifierProvider<ProductionViewmodel, List<Production>>(() {
+    AsyncNotifierProvider<ProductionViewmodel, List<Production>>(() {
       return ProductionViewmodel();
     });
 
@@ -48,7 +65,7 @@ ProductionType categoryOf(Production p) => switch (p) {
 };
 
 final filteredProductionProvider = Provider<List<Production>>((ref) {
-  final production = ref.watch(productionProvider);
+  final production = ref.watch(productionProvider).value ?? [];
   final category = ref.watch(productionCategoryProvider);
 
   return category == null
@@ -129,6 +146,7 @@ final avgPerDayProvider = Provider<double>((ref) {
       .map((e) => DateTime(e.date.year, e.date.month, e.date.day))
       .toSet()
       .length;
+
   return thisWeekTotal / distinctDays;
 });
 
@@ -143,12 +161,35 @@ final totalFeedAddedProvider = Provider<double>((ref) {
 });
 
 final latestFeedRemainingProvider = Provider<double?>((ref) {
-  final production = ref.watch(productionProvider);
+  final production = ref.watch(productionProvider).value ?? [];
   final feedEntries = production.whereType<FeedProduction>().toList();
   if (feedEntries.isEmpty) return null;
 
   feedEntries.sort((a, b) => b.date.compareTo(a.date));
   return feedEntries.first.amountRemaining;
+});
+
+final daysOfFeedRemainingProvider = Provider<double?>((ref) {
+  final production = ref.watch(productionProvider).value ?? [];
+  final feedEntries = production.whereType<FeedProduction>().toList()
+    ..sort((a, b) => b.date.compareTo(a.date));
+
+  if (feedEntries.length < 2) return null;
+
+  final latest = feedEntries.first;
+  final previous = feedEntries[1];
+
+  final daysBetween = latest.date.difference(previous.date).inHours / 24;
+  if (daysBetween <= 0) return null;
+
+  final consumed =
+      previous.amountRemaining + latest.amountAdded - latest.amountRemaining;
+  if (consumed <= 0) return null;
+
+  final dailyRate = consumed / daysBetween;
+  if (dailyRate <= 0) return null;
+
+  return latest.amountRemaining / dailyRate;
 });
 
 final totalMortalityDeadProvider = Provider<int>((ref) {
@@ -172,7 +213,7 @@ final totalMortalityMissingProvider = Provider<int>((ref) {
 });
 
 final weeklyMortalityDeadProvider = Provider<int>((ref) {
-  final production = ref.watch(productionProvider);
+  final production = ref.watch(productionProvider).value ?? [];
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final monday = today.subtract(Duration(days: today.weekday - 1));
@@ -187,7 +228,7 @@ final weeklyMortalityDeadProvider = Provider<int>((ref) {
 });
 
 final todaysEggsProvider = Provider<int>((ref) {
-  final production = ref.watch(productionProvider);
+  final production = ref.watch(productionProvider).value ?? [];
   final now = DateTime.now();
 
   return production
@@ -201,88 +242,8 @@ final todaysEggsProvider = Provider<int>((ref) {
       .fold<int>(0, (sum, e) => sum + e.collected);
 });
 
-final weeklyEggsByDayProvider = Provider<List<double>>((ref) {
-  final production = ref.watch(productionProvider);
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final monday = today.subtract(Duration(days: today.weekday - 1));
-
-  final buckets = List<double>.filled(7, 0);
-
-  for (final e in production.whereType<EggProduction>()) {
-    final entryDate = DateTime(e.date.year, e.date.month, e.date.day);
-    final diff = entryDate.difference(monday).inDays;
-    if (diff >= 0 && diff < 7) {
-      buckets[diff] += e.collected;
-    }
-  }
-
-  return buckets;
-});
-
-final weeklyEggsTotalProvider = Provider<int>((ref) {
-  final buckets = ref.watch(weeklyEggsByDayProvider);
-  return buckets.fold<int>(0, (sum, v) => sum + v.round());
-});
-
-final lastWeekEggsTotalProvider = Provider<int>((ref) {
-  final production = ref.watch(productionProvider);
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final thisMonday = today.subtract(Duration(days: today.weekday - 1));
-  final lastMonday = thisMonday.subtract(const Duration(days: 7));
-
-  return production
-      .whereType<EggProduction>()
-      .where((e) {
-        final entryDate = DateTime(e.date.year, e.date.month, e.date.day);
-        return !entryDate.isBefore(lastMonday) &&
-            entryDate.isBefore(thisMonday);
-      })
-      .fold<int>(0, (sum, e) => sum + e.collected);
-});
-
-final eggsWeekOverWeekChangeProvider = Provider<double>((ref) {
-  final thisWeek = ref.watch(weeklyEggsTotalProvider);
-  final lastWeek = ref.watch(lastWeekEggsTotalProvider);
-  if (lastWeek == 0) return 0.0;
-  return ((thisWeek - lastWeek) / lastWeek) * 100;
-});
-
-final recentActivityProvider = Provider<List<Production>>((ref) {
-  final production = ref.watch(productionProvider);
-  final sorted = [...production]..sort((a, b) => b.date.compareTo(a.date));
-  return sorted.take(5).toList();
-});
-
-final daysOfFeedRemainingProvider = Provider<double?>((ref) {
-  final production = ref.watch(productionProvider);
-  final feedEntries = production.whereType<FeedProduction>().toList()
-    ..sort((a, b) => b.date.compareTo(a.date));
-
-  if (feedEntries.isEmpty) return null;
-
-  final latest = feedEntries.first;
-
-  if (feedEntries.length < 2) return null;
-
-  final previous = feedEntries[1];
-
-  final daysBetween = latest.date.difference(previous.date).inHours / 24;
-  if (daysBetween <= 0) return null;
-
-  final consumed =
-      previous.amountRemaining + latest.amountAdded - latest.amountRemaining;
-  if (consumed <= 0) return null;
-
-  final dailyRate = consumed / daysBetween;
-  if (dailyRate <= 0) return null;
-
-  return latest.amountRemaining / dailyRate;
-});
-
 final yesterdaysEggsProvider = Provider<int>((ref) {
-  final production = ref.watch(productionProvider);
+  final production = ref.watch(productionProvider).value ?? [];
   final now = DateTime.now();
   final yesterday = DateTime(
     now.year,
@@ -306,4 +267,58 @@ final eggsDayOverDayChangeProvider = Provider<double>((ref) {
   final yesterday = ref.watch(yesterdaysEggsProvider);
   if (yesterday == 0) return 0.0;
   return ((today - yesterday) / yesterday) * 100;
+});
+
+final weeklyEggsByDayProvider = Provider<List<double>>((ref) {
+  final production = ref.watch(productionProvider).value ?? [];
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final monday = today.subtract(Duration(days: today.weekday - 1));
+
+  final buckets = List<double>.filled(7, 0);
+
+  for (final e in production.whereType<EggProduction>()) {
+    final entryDate = DateTime(e.date.year, e.date.month, e.date.day);
+    final diff = entryDate.difference(monday).inDays;
+    if (diff >= 0 && diff < 7) {
+      buckets[diff] += e.collected;
+    }
+  }
+
+  return buckets;
+});
+
+final weeklyEggsTotalProvider = Provider<int>((ref) {
+  final buckets = ref.watch(weeklyEggsByDayProvider);
+  return buckets.fold<int>(0, (sum, v) => sum + v.round());
+});
+
+final lastWeekEggsTotalProvider = Provider<int>((ref) {
+  final production = ref.watch(productionProvider).value ?? [];
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final thisMonday = today.subtract(Duration(days: today.weekday - 1));
+  final lastMonday = thisMonday.subtract(const Duration(days: 7));
+
+  return production
+      .whereType<EggProduction>()
+      .where((e) {
+        final entryDate = DateTime(e.date.year, e.date.month, e.date.day);
+        return !entryDate.isBefore(lastMonday) &&
+            entryDate.isBefore(thisMonday);
+      })
+      .fold<int>(0, (sum, e) => sum + e.collected);
+});
+
+final eggsWeekOverWeekChangeProvider = Provider<double>((ref) {
+  final thisWeek = ref.watch(weeklyEggsTotalProvider);
+  final lastWeek = ref.watch(lastWeekEggsTotalProvider);
+  if (lastWeek == 0) return 0.0;
+  return ((thisWeek - lastWeek) / lastWeek) * 100;
+});
+
+final recentActivityProvider = Provider<List<Production>>((ref) {
+  final production = ref.watch(productionProvider).value ?? [];
+  final sorted = [...production]..sort((a, b) => b.date.compareTo(a.date));
+  return sorted.take(5).toList();
 });

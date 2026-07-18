@@ -1,8 +1,8 @@
-import 'package:poultry_pro/model/flock_category.dart';
-
-import 'package:poultry_pro/model/status_category.dart';
+import 'status_category.dart';
+import 'flock_category.dart';
 
 class Flock {
+  final String id;
   final String name;
   final FlockCategory category;
   final FlockStatus status;
@@ -12,6 +12,7 @@ class Flock {
   final String? imagePath;
 
   Flock({
+    String? id,
     required this.name,
     required this.category,
     this.status = FlockStatus.active,
@@ -19,14 +20,15 @@ class Flock {
     int? currentBirdCount,
     this.ageInWeeks,
     this.imagePath,
-  }) : currentBirdCount = currentBirdCount ?? initialBirdCount;
+  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+       currentBirdCount = currentBirdCount ?? initialBirdCount;
 
   double get survivalRate =>
       initialBirdCount == 0 ? 1.0 : currentBirdCount / initialBirdCount;
 
-  // record a mortality event without mutating in place
   Flock recordDeaths(int count) {
     return Flock(
+      id: id,
       name: name,
       category: category,
       status: status,

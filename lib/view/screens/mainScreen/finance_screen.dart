@@ -4,6 +4,7 @@ import 'package:poultry_pro/model/transaction.dart';
 import 'package:poultry_pro/view_model/finance_period_provider.dart';
 import 'package:poultry_pro/view_model/filtered_transactions_provider.dart';
 import 'package:poultry_pro/view_model/finance_summary_provider.dart';
+import 'package:poultry_pro/view_model/transaction_provider.dart';
 import 'package:poultry_pro/view/widgets/finance_header.dart';
 import 'package:poultry_pro/view/widgets/expense_row.dart';
 import 'package:poultry_pro/view/widgets/list_card.dart';
@@ -24,6 +25,37 @@ class _FinanceState extends ConsumerState<Finance> {
 
   @override
   Widget build(BuildContext context) {
+    final transactionAsync = ref.watch(transactionProvider);
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => setState(() => _showAdd = !_showAdd),
+        child: Icon(_showAdd ? Icons.close : Icons.add),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: SafeArea(
+        child: transactionAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, stack) => Center(child: Text('Failed to load: $err')),
+          data: (_) => _FinanceContent(
+            showAdd: _showAdd,
+            onToggleAdd: () => setState(() => _showAdd = false),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FinanceContent extends ConsumerWidget {
+  const _FinanceContent({required this.showAdd, required this.onToggleAdd});
+
+  final bool showAdd;
+  final VoidCallback onToggleAdd;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final screenHeight = MediaQuery.of(context).size.height;
     final period = ref.watch(financePeriodProvider);
     final transactions = ref.watch(filteredTransactionsProvider);
@@ -48,161 +80,144 @@ class _FinanceState extends ConsumerState<Finance> {
           (expenseByCategory[t.category] ?? 0) + t.amount;
     }
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => setState(() => _showAdd = !_showAdd),
-        child: Icon(_showAdd ? Icons.close : Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FinanceHeader(
-                onChanged: (i) => ref
-                    .read(financePeriodProvider.notifier)
-                    .setPeriod(FinancePeriod.values[i]),
-                selectedIndex: FinancePeriod.values.indexOf(period),
-              ),
-              if (_showAdd)
-                AddTransactionForm(
-                  onCancel: () => setState(() => _showAdd = false),
-                  onSave: () => setState(() => _showAdd = false),
-                ),
-              Padding(
-                padding: const EdgeInsets.all(9.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    PLSummaryCard(
-                      title: '${periodLabel(period)} . P&L',
-                      rows: [
-                        PLRowData(
-                          'Revenue',
-                          "GHS ${summary.revenue.toStringAsFixed(0)}",
-                          summary.revenue == 0
-                              ? 0.0
-                              : summary.revenue /
-                                    (summary.revenue + summary.expenses).clamp(
-                                      1,
-                                      double.infinity,
-                                    ),
-                          Theme.of(context).colorScheme.tertiary,
-                        ),
-                        PLRowData(
-                          'Expenses',
-                          "GHS ${summary.expenses.toStringAsFixed(0)}",
-                          summary.expenses == 0
-                              ? 0.0
-                              : summary.expenses /
-                                    (summary.revenue + summary.expenses).clamp(
-                                      1,
-                                      double.infinity,
-                                    ),
-                          Theme.of(context).colorScheme.error,
-                        ),
-                        PLRowData(
-                          'Net Profit',
-                          "GHS ${summary.netProfit.toStringAsFixed(0)}",
-                          summary.revenue == 0
-                              ? 0.0
-                              : (summary.netProfit / summary.revenue).clamp(
-                                  0,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FinanceHeader(
+            onChanged: (i) => ref
+                .read(financePeriodProvider.notifier)
+                .setPeriod(FinancePeriod.values[i]),
+            selectedIndex: FinancePeriod.values.indexOf(period),
+          ),
+          if (showAdd)
+            AddTransactionForm(onCancel: onToggleAdd, onSave: onToggleAdd),
+          Padding(
+            padding: const EdgeInsets.all(9.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                PLSummaryCard(
+                  title: '${periodLabel(period)} . P&L',
+                  rows: [
+                    PLRowData(
+                      'Revenue',
+                      "GHS ${summary.revenue.toStringAsFixed(0)}",
+                      summary.revenue == 0
+                          ? 0.0
+                          : summary.revenue /
+                                (summary.revenue + summary.expenses).clamp(
                                   1,
+                                  double.infinity,
                                 ),
-                          Theme.of(context).colorScheme.primary,
-                        ),
-                      ],
+                      Theme.of(context).colorScheme.tertiary,
                     ),
-                    SizedBox(height: screenHeight * 0.03),
-                    Text(
-                      "Revenue Sources",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                    PLRowData(
+                      'Expenses',
+                      "GHS ${summary.expenses.toStringAsFixed(0)}",
+                      summary.expenses == 0
+                          ? 0.0
+                          : summary.expenses /
+                                (summary.revenue + summary.expenses).clamp(
+                                  1,
+                                  double.infinity,
+                                ),
+                      Theme.of(context).colorScheme.error,
                     ),
-                    SizedBox(height: screenHeight * 0.02),
-                    revenueByCategory.isEmpty
-                        ? const _EmptySectionMessage(
-                            message: 'No income recorded yet',
-                          )
-                        : ListCard(
-                            rows: revenueByCategory.entries.map((e) {
-                              final pct = summary.revenue == 0
-                                  ? 0
-                                  : (e.value / summary.revenue * 100).round();
-                              return SourceRow(
-                                icon: iconForCategory(e.key),
-                                title: e.key,
-                                subtitle: '$pct% of revenue',
-                                value: 'GHS ${e.value.toStringAsFixed(0)}',
-                              );
-                            }).toList(),
-                          ),
-                    SizedBox(height: screenHeight * 0.04),
-                    Text(
-                      "Expenses",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                    PLRowData(
+                      'Net Profit',
+                      "GHS ${summary.netProfit.toStringAsFixed(0)}",
+                      summary.revenue == 0
+                          ? 0.0
+                          : (summary.netProfit / summary.revenue).clamp(0, 1),
+                      Theme.of(context).colorScheme.primary,
                     ),
-                    SizedBox(height: screenHeight * 0.02),
-                    expenseByCategory.isEmpty
-                        ? const _EmptySectionMessage(
-                            message: 'No expenses recorded yet',
-                          )
-                        : ListCard(
-                            rows: expenseByCategory.entries.map((e) {
-                              final maxExpense = expenseByCategory.values
-                                  .reduce((a, b) => a > b ? a : b);
-                              return ExpenseRow(
-                                icon: iconForCategory(e.key),
-                                title: e.key,
-                                value: 'GHS ${e.value.toStringAsFixed(0)}',
-                                barPct: maxExpense == 0
-                                    ? 0
-                                    : e.value / maxExpense,
-                              );
-                            }).toList(),
-                          ),
-                    SizedBox(height: screenHeight * 0.04),
-                    Text(
-                      "Transactions",
-                      style: TextStyle(
-                        fontSize: 17.0,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-                    transactions.isEmpty
-                        ? const _EmptySectionMessage(
-                            message: 'No transactions recorded yet',
-                          )
-                        : ListCard(
-                            rows: transactions.map((t) {
-                              return TransactionRow(
-                                icon: iconForCategory(t.category),
-                                title: t.category,
-                                date:
-                                    '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}-${t.date.day.toString().padLeft(2, '0')}',
-                                amount: 'GHS ${t.amount.toStringAsFixed(0)}',
-                                isIncome: t.type == TransactionType.income,
-                              );
-                            }).toList(),
-                          ),
                   ],
                 ),
-              ),
-            ],
+                SizedBox(height: screenHeight * 0.03),
+                Text(
+                  "Revenue Sources",
+                  style: TextStyle(
+                    fontSize: 17.0,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                revenueByCategory.isEmpty
+                    ? const _EmptySectionMessage(
+                        message: 'No income recorded yet',
+                      )
+                    : ListCard(
+                        rows: revenueByCategory.entries.map((e) {
+                          final pct = summary.revenue == 0
+                              ? 0
+                              : (e.value / summary.revenue * 100).round();
+                          return SourceRow(
+                            icon: iconForCategory(e.key),
+                            title: e.key,
+                            subtitle: '$pct% of revenue',
+                            value: 'GHS ${e.value.toStringAsFixed(0)}',
+                          );
+                        }).toList(),
+                      ),
+                SizedBox(height: screenHeight * 0.04),
+                Text(
+                  "Expenses",
+                  style: TextStyle(
+                    fontSize: 17.0,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                expenseByCategory.isEmpty
+                    ? const _EmptySectionMessage(
+                        message: 'No expenses recorded yet',
+                      )
+                    : ListCard(
+                        rows: expenseByCategory.entries.map((e) {
+                          final maxExpense = expenseByCategory.values.reduce(
+                            (a, b) => a > b ? a : b,
+                          );
+                          return ExpenseRow(
+                            icon: iconForCategory(e.key),
+                            title: e.key,
+                            value: 'GHS ${e.value.toStringAsFixed(0)}',
+                            barPct: maxExpense == 0 ? 0 : e.value / maxExpense,
+                          );
+                        }).toList(),
+                      ),
+                SizedBox(height: screenHeight * 0.04),
+                Text(
+                  "Transactions",
+                  style: TextStyle(
+                    fontSize: 17.0,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.02),
+                transactions.isEmpty
+                    ? const _EmptySectionMessage(
+                        message: 'No transactions recorded yet',
+                      )
+                    : ListCard(
+                        rows: transactions.map((t) {
+                          return TransactionRow(
+                            icon: iconForCategory(t.category),
+                            title: t.category,
+                            date:
+                                '${t.date.year}-${t.date.month.toString().padLeft(2, '0')}-${t.date.day.toString().padLeft(2, '0')}',
+                            amount: 'GHS ${t.amount.toStringAsFixed(0)}',
+                            isIncome: t.type == TransactionType.income,
+                          );
+                        }).toList(),
+                      ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

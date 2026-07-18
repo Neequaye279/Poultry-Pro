@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/model/flock.dart';
-import 'package:poultry_pro/view_model/flock_viewmodel.dart';
+import 'package:poultry_pro/view_model/flock_provider.dart';
 import 'package:poultry_pro/view/widgets/Containers/flock_stat_container.dart';
 import 'package:poultry_pro/view/widgets/Containers/status_container.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';

@@ -7,7 +7,7 @@ import 'package:poultry_pro/view/widgets/Containers/production_card.dart';
 import 'package:poultry_pro/view/widgets/Containers/production_info_container.dart';
 import 'package:poultry_pro/view/widgets/Containers/production_stat_card.dart';
 import 'package:poultry_pro/view/widgets/recent_record_tile.dart';
-import 'package:poultry_pro/view_model/production_viewmodel.dart';
+import 'package:poultry_pro/view_model/production_provider.dart';
 
 class ProductionScreen extends ConsumerStatefulWidget {
   const ProductionScreen({super.key});
@@ -71,13 +71,21 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
   @override
   Widget build(BuildContext context) {
     final _production = ref.read(productionProvider.notifier);
+    final productionAsync = ref.watch(productionProvider);
     final filteredProduction = ref.watch(filteredProductionProvider);
     final selectedCategory = ref.watch(productionCategoryProvider);
 
-    ref.listen<List<Production>>(productionProvider, (previous, next) {
-      final isNewEntryAdded = (previous?.length ?? 0) < next.length;
+    ref.listen<AsyncValue<List<Production>>>(productionProvider, (
+      previous,
+      next,
+    ) {
+      final prevList = previous?.value;
+      final nextList = next.value;
+      if (prevList == null || nextList == null) return;
+
+      final isNewEntryAdded = prevList.length < nextList.length;
       if (isNewEntryAdded) {
-        final newEntry = next.last;
+        final newEntry = nextList.last;
         final newCategory = categoryOf(newEntry);
         ref.read(productionCategoryProvider.notifier).setCategory(newCategory);
         setState(() {
@@ -246,8 +254,10 @@ class _ProductionState extends ConsumerState<ProductionScreen> {
         },
         child: Icon(Icons.add),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: productionAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Failed to load: $err')),
+        data: (_) => SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

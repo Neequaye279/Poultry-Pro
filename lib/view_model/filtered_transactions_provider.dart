@@ -4,7 +4,7 @@ import 'transaction_provider.dart';
 import 'finance_period_provider.dart';
 
 final filteredTransactionsProvider = Provider<List<Transaction>>((ref) {
-  final transactions = ref.watch(transactionProvider);
+  final transactions = ref.watch(transactionProvider).value ?? [];
   final period = ref.watch(financePeriodProvider);
   final now = DateTime.now();
 

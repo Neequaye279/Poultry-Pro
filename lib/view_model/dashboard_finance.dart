@@ -1,17 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/model/transaction.dart';
-import 'package:poultry_pro/view_model/filtered_transactions_provider.dart';
 import 'package:poultry_pro/view_model/transaction_provider.dart';
-
-final financeSummaryProvider =
-    Provider<({double revenue, double expenses, double netProfit})>((ref) {
-      final transactions = ref.watch(filteredTransactionsProvider);
-      return _summarize(transactions);
-    });
 
 final monthlyFinanceSummaryProvider =
     Provider<({double revenue, double expenses, double netProfit})>((ref) {
-      final allTransactions = ref.watch(transactionProvider);
+      final allTransactions = ref.watch(transactionProvider).value ?? [];
       final now = DateTime.now();
 
       final monthly = allTransactions

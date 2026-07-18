@@ -1,24 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:poultry_pro/model/production.dart';
+import 'package:poultry_pro/model/production_category.dart';
+import 'package:poultry_pro/view_model/production_provider.dart';
+import 'package:poultry_pro/view_model/flock_provider.dart';
 import 'package:poultry_pro/view/widgets/dashboard_header.dart';
 import 'package:poultry_pro/view/widgets/stat_card.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:poultry_pro/view/widgets/lowfeed_alert.dart';
 import 'package:poultry_pro/view/widgets/weekly_eggs_card.dart';
 import 'package:poultry_pro/view/widgets/recent_activity_card.dart';
-import 'package:poultry_pro/view_model/flock_viewmodel.dart';
-import 'package:poultry_pro/view_model/production_viewmodel.dart';
-import 'package:poultry_pro/view_model/profile_provider.dart';
 import 'package:poultry_pro/view_model/profile_provider.dart';
 import 'package:poultry_pro/view_model/dashboard_finance.dart';
-import 'package:poultry_pro/model/production_category.dart';
-import 'package:poultry_pro/model/production.dart';
 
 String _greeting() {
   final hour = DateTime.now().hour;
   if (hour < 12) return 'Good Morning';
   if (hour < 17) return 'Good Afternoon';
   return 'Good Evening';
+}
+
+String _currentMonthLabel() {
+  const months = [
+    'January',
+    'Fberuary',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+  final now = DateTime.now();
+  return '${months[now.month - 1]} ${now.year}';
+}
+
+String _formatNumber(int n) {
+  return n.toString().replaceAllMapped(
+    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+    (match) => '${match[1]},',
+  );
 }
 
 IconData _iconFor(ProductionType category) {
@@ -62,52 +87,34 @@ String _activitySubtitle(DateTime date) {
   return '${date.day}/${date.month}/${date.year}';
 }
 
-String _formatNumber(int n) {
-  return n.toString().replaceAllMapped(
-    RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
-    (match) => '${match[1]},',
-  );
-}
-
-String _currentMonthLabel() {
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  final now = DateTime.now();
-  return '${months[now.month - 1]} ${now.year}';
-}
-
 class Home extends ConsumerWidget {
   const Home({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profile = ref.watch(profileProvider);
+    final productionAsync = ref.watch(productionProvider);
+    final flockAsync = ref.watch(flockProvider);
+
+    final isLoading = productionAsync.isLoading || flockAsync.isLoading;
+    final hasError = productionAsync.hasError || flockAsync.hasError;
+
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (hasError) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            'Failed to load dashboard: '
+            '${productionAsync.error ?? flockAsync.error}',
+          ),
+        ),
+      );
+    }
+
+    final profile = ref.watch(profileProvider).value;
     final summary = ref.watch(monthlyFinanceSummaryProvider);
-    final feedRemaining = ref.watch(latestFeedRemainingProvider);
-    final daysOfFeedLeft = ref.watch(daysOfFeedRemainingProvider);
-    final totalBirds = ref.watch(totalBirdsProvider);
-    final activeFlocks = ref.watch(activeFlocksCountProvider);
-    final todaysEggs = ref.watch(todaysEggsProvider);
-    final weeklyMortalityDead = ref.watch(weeklyMortalityDeadProvider);
-    final eggsDayChange = ref.watch(eggsDayOverDayChangeProvider);
-    final weeklyEggs = ref.watch(weeklyEggsByDayProvider);
-    final weeklyEggsTotal = ref.watch(weeklyEggsTotalProvider);
-    final eggsWeekChange = ref.watch(eggsWeekOverWeekChangeProvider);
-    final recentActivity = ref.watch(recentActivityProvider);
-    final today = DateTime.now();
-    final todayIndex = today.weekday - 1;
 
     final profitMargin = summary.revenue == 0
         ? 0.0
@@ -116,6 +123,19 @@ class Home extends ConsumerWidget {
     final colors = Theme.of(context).colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    final totalBirds = ref.watch(totalBirdsProvider);
+    final activeFlocks = ref.watch(activeFlocksCountProvider);
+    final todaysEggs = ref.watch(todaysEggsProvider);
+    final eggsDayChange = ref.watch(eggsDayOverDayChangeProvider);
+    final feedRemaining = ref.watch(latestFeedRemainingProvider);
+    final daysOfFeedLeft = ref.watch(daysOfFeedRemainingProvider);
+    final weeklyMortalityDead = ref.watch(weeklyMortalityDeadProvider);
+    final weeklyEggs = ref.watch(weeklyEggsByDayProvider);
+    final weeklyEggsTotal = ref.watch(weeklyEggsTotalProvider);
+    final eggsWeekChange = ref.watch(eggsWeekOverWeekChangeProvider);
+    final recentActivity = ref.watch(recentActivityProvider);
+    final today = DateTime.now();
+    final todayIndex = today.weekday - 1;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -154,7 +174,7 @@ class Home extends ConsumerWidget {
                             title: "EGGS TODAY",
                             value: "$todaysEggs",
                             stat: eggsDayChange == 0
-                                ? "No change vs last week"
+                                ? "No change vs yesterday"
                                 : "${eggsDayChange >= 0 ? '↑' : '↓'} ${eggsDayChange.abs().toStringAsFixed(0)}% vs yesterday",
                             icon: LucideIcons.egg,
                             iconColor: colors.primary,
@@ -199,11 +219,10 @@ class Home extends ConsumerWidget {
                         child: LowfeedAlert(
                           flockName: "Feed stock",
                           restockMessage:
-                              "restock in ~${daysOfFeedLeft.round()} days.",
+                              "restock in ~${daysOfFeedLeft.round()} days",
                           onTap: () {},
                         ),
                       ),
-                    SizedBox(height: screenHeight * 0.02),
                     WeeklyEggsCard(
                       dayLabels: const ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                       values: weeklyEggs,

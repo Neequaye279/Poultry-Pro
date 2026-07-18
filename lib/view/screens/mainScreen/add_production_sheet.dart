@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/view/widgets/Buttons/production_type_dropdown_button.dart';
 import 'package:poultry_pro/view/widgets/custom_textfield.dart';
 import 'package:poultry_pro/view_model/add_production_viewmodel.dart';
-import 'package:poultry_pro/view_model/production_viewmodel.dart';
+import 'package:poultry_pro/view_model/production_provider.dart';
 import 'package:poultry_pro/model/production_category.dart';
 
 class AddProduction extends ConsumerStatefulWidget {

@@ -29,7 +29,13 @@ class PoultryPro extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appSettings = ref.watch(appSettingsProvider);
+    final appSettings =
+        ref.watch(appSettingsProvider).value ??
+        const AppSettings(
+          appearanceMode: AppearanceMode.system,
+          biometricsEnabled: true,
+          notificationsEnabled: true,
+        );
     return MaterialApp(
       title: "Poultry Pro",
       debugShowCheckedModeBanner: false,

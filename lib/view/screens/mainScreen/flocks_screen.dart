@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:poultry_pro/model/flock.dart';
 import 'package:poultry_pro/model/flock_category.dart';
-import 'package:poultry_pro/view_model/flock_viewmodel.dart';
+import 'package:poultry_pro/view_model/flock_provider.dart';
 import 'package:poultry_pro/view/widgets/Containers/filter_chip.dart';
 import 'package:poultry_pro/view/widgets/Containers/flock_card.dart';
 import 'package:poultry_pro/view/widgets/Containers/flock_info_container.dart';
@@ -18,6 +18,7 @@ class Flocks extends ConsumerStatefulWidget {
 class _FlocksState extends ConsumerState<Flocks> {
   String _isSelected = 'all';
   final ScrollController _scrollController = ScrollController();
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -26,11 +27,15 @@ class _FlocksState extends ConsumerState<Flocks> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(flockProvider);
+    final flocksAsync = ref.watch(flockProvider);
     final _flocks = ref.read(flockProvider.notifier);
 
-    ref.listen<List<Flock>>(flockProvider, (previous, next) {
-      final isNewFlockAdded = (previous?.length ?? 0) < next.length;
+    ref.listen<AsyncValue<List<Flock>>>(flockProvider, (previous, next) {
+      final prevList = previous?.value;
+      final nextList = next.value;
+      if (prevList == null || nextList == null) return;
+
+      final isNewFlockAdded = prevList.length < nextList.length;
       if (isNewFlockAdded) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
@@ -73,45 +78,6 @@ class _FlocksState extends ConsumerState<Flocks> {
         );
     }
 
-    Widget content = Scrollbar(
-      controller: _scrollController,
-      thickness: 8.0,
-      radius: const Radius.circular(10),
-      interactive: true,
-      child: ListView.builder(
-        controller: _scrollController,
-        itemCount: _flocks.filterFlock.length,
-        itemBuilder: (BuildContext context, index) {
-          final flock = _flocks.filterFlock[index];
-          return Dismissible(
-            key: ValueKey(flock),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              margin: const EdgeInsets.all(10),
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                Icons.delete,
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
-            onDismissed: (direction) {
-              _flocks.removeFlock(flock);
-              showUndoSnackBar(context, flock);
-            },
-            child: FlockCard(flock: flock),
-          );
-        },
-      ),
-    );
-
-    if (_flocks.filterFlock.isEmpty) {
-      content = Center(child: Text('Flock is empty'));
-    }
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         heroTag: 'flocks_add_fab',
@@ -135,21 +101,24 @@ class _FlocksState extends ConsumerState<Flocks> {
         ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(70),
-          child: Row(
-            children: [
-              FlockInfoContainer(
-                quantity: _flocks.totalFlocks.toString(),
-                title: 'Flocks',
-              ),
-              FlockInfoContainer(
-                quantity: _flocks.totalBirds.toString(),
-                title: 'Birds',
-              ),
-              FlockInfoContainer(
-                quantity: '${_flocks.averageAgeInWeeks}wks',
-                title: 'Avg age',
-              ),
-            ],
+          child: flocksAsync.maybeWhen(
+            data: (flocks) => Row(
+              children: [
+                FlockInfoContainer(
+                  quantity: _flocks.totalFlocks(flocks).toString(),
+                  title: 'Flocks',
+                ),
+                FlockInfoContainer(
+                  quantity: _flocks.totalBirds(flocks).toString(),
+                  title: 'Birds',
+                ),
+                FlockInfoContainer(
+                  quantity: '${_flocks.averageAgeInWeeks(flocks)}wks',
+                  title: 'Avg age',
+                ),
+              ],
+            ),
+            orElse: () => const SizedBox.shrink(),
           ),
         ),
       ),
@@ -208,7 +177,58 @@ class _FlocksState extends ConsumerState<Flocks> {
             ),
           ),
           SizedBox(height: 10),
-          Expanded(child: content),
+          Expanded(
+            child: flocksAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) =>
+                  Center(child: Text('Failed to load: $err')),
+              data: (flocks) {
+                final filtered = _flocks.filterFlock(flocks);
+
+                if (filtered.isEmpty) {
+                  return const Center(child: Text('Flock is empty'));
+                }
+
+                return Scrollbar(
+                  controller: _scrollController,
+                  thickness: 8.0,
+                  radius: const Radius.circular(10),
+                  interactive: true,
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    itemCount: filtered.length,
+                    itemBuilder: (BuildContext context, index) {
+                      final flock = filtered[index];
+                      return Dismissible(
+                        key: ValueKey(flock.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          margin: const EdgeInsets.all(10),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                        onDismissed: (direction) {
+                          _flocks.removeFlock(flock);
+                          showUndoSnackBar(context, flock);
+                        },
+                        child: FlockCard(flock: flock),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
