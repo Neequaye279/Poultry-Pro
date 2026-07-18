@@ -4,7 +4,6 @@ import 'package:poultry_pro/model/app_settings.dart';
 import 'package:poultry_pro/view_model/app_settings_provider.dart';
 import 'package:poultry_pro/view/Theme/color_theme.dart';
 import 'package:poultry_pro/view/Theme/text_theme.dart';
-import 'test_entry.dart';
 import 'view/screens/splash_screen.dart';
 import 'view/screens/welcome_screen.dart';
 import 'view/screens/auth/signup/biometrics.dart';
@@ -49,9 +48,8 @@ class PoultryPro extends ConsumerWidget {
         AppearanceMode.light => ThemeMode.light,
         AppearanceMode.system => ThemeMode.system,
       },
-      home: MainScreen(),
-      // initialRoute: '/',
-      /* routes: {
+      initialRoute: '/',
+      routes: {
         '/': (context) => SplashScreen(),
         '/wel': (context) => WelcomeScreen(),
         '/sudetails': (context) => DetailsScreen(),
@@ -67,7 +65,7 @@ class PoultryPro extends ConsumerWidget {
         '/production': (context) => ProductionScreen(),
         '/settings': (context) => Settings(),
         '/main': (context) => MainScreen(),
-      },*/
+      },
     );
   }
 }
