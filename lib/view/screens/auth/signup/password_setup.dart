@@ -277,7 +277,7 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-class _SecurityField extends StatelessWidget {
+class _SecurityField extends StatefulWidget {
   const _SecurityField({
     required this.label,
     required this.hintText,
@@ -293,6 +293,13 @@ class _SecurityField extends StatelessWidget {
   final String? errorText;
 
   @override
+  State<_SecurityField> createState() => _SecurityFieldState();
+}
+
+class _SecurityFieldState extends State<_SecurityField> {
+  bool _obscure = true;
+
+  @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
@@ -300,7 +307,7 @@ class _SecurityField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          widget.label,
           style: TextStyle(
             color: colors.onSurface.withValues(alpha: 0.62),
             fontSize: 13,
@@ -309,22 +316,27 @@ class _SecurityField extends StatelessWidget {
         ),
         SizedBox(height: 10),
         TextField(
-          controller: controller,
-          obscureText: true,
+          controller: widget.controller,
+          obscureText: _obscure,
           style: TextStyle(color: colors.onSurface),
           decoration: InputDecoration(
-            errorText: errorText,
-            hintText: hintText,
+            errorText: widget.errorText,
+            hintText: widget.hintText,
             hintStyle: TextStyle(
               color: colors.onSurface.withValues(alpha: 0.4),
             ),
             prefixIcon: Icon(
-              prefixIcon,
+              widget.prefixIcon,
               color: colors.onSurface.withValues(alpha: 0.32),
             ),
-            suffixIcon: Icon(
-              Icons.visibility_outlined,
-              color: colors.onSurface.withValues(alpha: 0.30),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscure
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: colors.onSurface.withValues(alpha: 0.30),
+              ),
+              onPressed: () => setState(() => _obscure = !_obscure),
             ),
             filled: true,
             fillColor: colors.surface,

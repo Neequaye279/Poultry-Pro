@@ -274,7 +274,7 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
-class _PinField extends StatelessWidget {
+class _PinField extends StatefulWidget {
   const _PinField({
     required this.label,
     required this.hintText,
@@ -286,6 +286,14 @@ class _PinField extends StatelessWidget {
   final String hintText;
   final TextEditingController controller;
   final String? errorText;
+
+  @override
+  State<_PinField> createState() => _PinFieldState();
+}
+
+class _PinFieldState extends State<_PinField> {
+  bool _obscure = true;
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -294,7 +302,7 @@ class _PinField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          widget.label,
           style: TextStyle(
             color: colors.onSurface.withValues(alpha: 0.62),
             fontSize: 13,
@@ -303,16 +311,16 @@ class _PinField extends StatelessWidget {
         ),
         SizedBox(height: 10),
         TextField(
-          controller: controller,
-          obscureText: true,
+          controller: widget.controller,
+          obscureText: _obscure,
           keyboardType: TextInputType.number,
           maxLength: 6,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           style: TextStyle(color: colors.onSurface),
           decoration: InputDecoration(
             counterText: '',
-            errorText: errorText,
-            hintText: hintText,
+            errorText: widget.errorText,
+            hintText: widget.hintText,
             hintStyle: TextStyle(
               color: colors.onSurface.withValues(alpha: 0.4),
               letterSpacing: 1.5,
@@ -324,15 +332,19 @@ class _PinField extends StatelessWidget {
                   "#",
                   style: TextStyle(
                     color: colors.onSurface.withValues(alpha: 0.32),
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
             ),
-            suffixIcon: Icon(
-              Icons.visibility_outlined,
-              color: colors.onSurface.withValues(alpha: 0.30),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscure
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: colors.onSurface.withValues(alpha: 0.30),
+              ),
+              onPressed: () => setState(() => _obscure = !_obscure),
             ),
             filled: true,
             fillColor: colors.surface,
