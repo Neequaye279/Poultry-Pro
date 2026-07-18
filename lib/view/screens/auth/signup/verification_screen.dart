@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:poultry_pro/view/widgets/progress_stepper.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
 import 'package:poultry_pro/view_model/signup_provider.dart';
+import 'package:poultry_pro/services/auth_services.dart';
 
 class Verification extends ConsumerStatefulWidget {
   const Verification({super.key});
@@ -18,6 +20,8 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
   final _otpController = TextEditingController();
 
   bool _codeSent = false;
+  bool _sending = false;
+  bool _isVerifying = false;
   String? _otpError;
 
   @override
@@ -26,15 +30,32 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
     super.dispose();
   }
 
-  void _sendCode() {
-    setState(() => _codeSent = true);
-    _showSentToast();
+  Future<void> _sendCode() async {
+    if (_sending) return;
+    setState(() => _sending = true);
+
+    final email = ref.read(signupProvider).email;
+    final authService = ref.read(authServiceProvider);
+
+    try {
+      await authService.sendOtp(email: email);
+      setState(() => _codeSent = true);
+      _showSentToast();
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
-  void _resendCode() {
+  Future<void> _resendCode() async {
     _otpController.clear();
     setState(() => _otpError = null);
-    _showSentToast();
+    await _sendCode();
   }
 
   void _showSentToast() {
@@ -50,17 +71,40 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
       );
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     final otp = _otpController.text.trim();
+    final email = ref.read(signupProvider).email;
+    final authService = ref.read(authServiceProvider);
+
+    if (otp.isEmpty) {
+      setState(() => _otpError = 'Enter the code from your email');
+      return;
+    }
 
     setState(() {
-      _otpError = otp == '1234' ? null : 'Incorrect code, please try again';
+      _otpError = null;
+      _isVerifying = true;
     });
 
-    if (_otpError != null) return;
+    try {
+      final response = await authService.verifyOtp(email: email, token: otp);
 
-    ref.read(signupProvider.notifier).markOtpVerified();
-    Navigator.pushNamed(context, '/piSetup');
+      if (response.session == null) {
+        setState(() {
+          _otpError = 'Incorrect code, please try again';
+          _isVerifying = false;
+        });
+        return;
+      }
+
+      ref.read(signupProvider.notifier).markOtpVerified();
+      if (mounted) Navigator.pushNamed(context, '/piSetup');
+    } on AuthException catch (e) {
+      setState(() {
+        _otpError = e.message;
+        _isVerifying = false;
+      });
+    }
   }
 
   @override
@@ -137,7 +181,7 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "4-DIGIT OTP",
+                    "ENTER OTP",
                     style: TextStyle(
                       color: colors.onSurface.withValues(alpha: 0.62),
                       fontSize: 13,
@@ -149,13 +193,13 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
                 TextField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
-                  maxLength: 4,
+                  maxLength: 8,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   style: TextStyle(color: colors.onSurface),
                   decoration: InputDecoration(
                     counterText: '',
                     errorText: _otpError,
-                    hintText: "Enter code (use 1234)",
+                    hintText: "Enter code",
                     hintStyle: TextStyle(
                       color: colors.onSurface.withValues(alpha: 0.4),
                     ),
@@ -202,40 +246,18 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
                 ),
                 const SizedBox(height: 24),
               ],
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: colors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Icon(LucideIcons.info, size: 18, color: colors.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(color: colors.primary, fontSize: 13),
-                          children: const [
-                            TextSpan(text: "Demo tip: use OTP "),
-                            TextSpan(
-                              text: "1234",
-                              style: TextStyle(fontWeight: FontWeight.w800),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               SizedBox(height: screenHeight * 0.04),
               ScreenButton(
-                buttonText: _codeSent ? "Continue" : "Send Verification Code",
+                buttonText: _sending
+                    ? "Sending..."
+                    : (_codeSent
+                          ? (_isVerifying ? "Verifying…" : "Continue")
+                          : "Send Verification Code"),
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: _codeSent ? _continue : _sendCode,
+                onPressed: (_sending || _isVerifying)
+                    ? null
+                    : (_codeSent ? _continue : _sendCode),
               ),
               SizedBox(height: screenHeight * 0.02),
             ],

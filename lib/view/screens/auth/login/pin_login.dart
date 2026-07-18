@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
 import 'package:poultry_pro/view/widgets/security_method_toggle.dart';
+import 'package:poultry_pro/services/auth_services.dart';
+import 'package:poultry_pro/services/secure_storage_service.dart';
 
-class PinLogin extends StatefulWidget {
+class PinLogin extends ConsumerStatefulWidget {
   const PinLogin({super.key});
 
   @override
-  State<PinLogin> createState() => _PinLoginState();
+  ConsumerState<PinLogin> createState() => _PinLoginState();
 }
 
-class _PinLoginState extends State<PinLogin> {
+class _PinLoginState extends ConsumerState<PinLogin> {
   final _pinController = TextEditingController();
 
   bool _obscurePin = true;
+  bool _submitting = false;
   String? _pinError;
 
   @override
@@ -23,7 +28,7 @@ class _PinLoginState extends State<PinLogin> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final pin = _pinController.text.trim();
 
     String? pinError;
@@ -34,11 +39,41 @@ class _PinLoginState extends State<PinLogin> {
     }
 
     setState(() => _pinError = pinError);
-
     if (pinError != null) return;
 
-    // TODO: verify pin against stored credential once Supabase Auth is wired.
-    Navigator.pushNamed(context, '/main');
+    setState(() => _submitting = true);
+
+    try {
+      final storedPin = await SecureStorageService.getPin();
+      final storedEmail = await SecureStorageService.getEmail();
+      final storedPassword = await SecureStorageService.getPassword();
+
+      if (storedPin == null || storedEmail == null || storedPassword == null) {
+        setState(() => _pinError = 'No PIN set up on this device');
+        return;
+      }
+
+      if (pin != storedPin) {
+        setState(() => _pinError = 'Incorrect PIN');
+        return;
+      }
+
+      final response = await ref
+          .read(authServiceProvider)
+          .signIn(email: storedEmail, password: storedPassword);
+
+      if (response.session == null) {
+        throw Exception('Sign in failed');
+      }
+
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+      }
+    } on AuthException catch (e) {
+      setState(() => _pinError = e.message);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -110,10 +145,10 @@ class _PinLoginState extends State<PinLogin> {
               ),
               SizedBox(height: screenHeight * 0.04),
               ScreenButton(
-                buttonText: "Continue",
+                buttonText: _submitting ? "Signing in..." : "Continue",
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: _submit,
+                onPressed: _submitting ? null : _submit,
               ),
               SizedBox(height: screenHeight * 0.02),
             ],

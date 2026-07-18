@@ -19,8 +19,15 @@ import 'view/screens/mainScreen/finance_screen.dart';
 import 'view/screens/mainScreen/production_screen.dart';
 import 'view/screens/mainScreen/settings_screen.dart';
 import 'view/screens/mainScreen/main_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://wigedjpautxiqglcjjfh.supabase.co',
+    publishableKey: 'sb_publishable_mXb5B1Zlo4wbF_SIIpbBqQ_x27PrnFG',
+  );
   runApp(ProviderScope(child: PoultryPro()));
 }
 

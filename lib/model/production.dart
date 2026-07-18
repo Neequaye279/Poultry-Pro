@@ -1,9 +1,11 @@
+import 'package:uuid/uuid.dart';
+
 sealed class Production {
   final String id;
   final DateTime date;
 
   Production({String? id, DateTime? date})
-    : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+    : id = id ?? const Uuid().v4(),
       date = date ?? DateTime.now();
 }
 

@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
 import 'package:poultry_pro/view/widgets/security_method_toggle.dart';
+import 'package:poultry_pro/services/auth_services.dart';
 
-class PasswordLogin extends StatefulWidget {
+class PasswordLogin extends ConsumerStatefulWidget {
   const PasswordLogin({super.key});
 
   @override
-  State<PasswordLogin> createState() => _PasswordLoginState();
+  ConsumerState<PasswordLogin> createState() => _PasswordLoginState();
 }
 
-class _PasswordLoginState extends State<PasswordLogin> {
+class _PasswordLoginState extends ConsumerState<PasswordLogin> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  bool _submitting = false;
   String? _emailError;
   String? _passwordError;
 
@@ -29,7 +33,7 @@ class _PasswordLoginState extends State<PasswordLogin> {
     setState(() => _obscurePassword = !_obscurePassword);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -40,8 +44,25 @@ class _PasswordLoginState extends State<PasswordLogin> {
 
     if (_emailError != null || _passwordError != null) return;
 
-    // TODO: verify email/password against stored credential once Supabase Auth is wired.
-    Navigator.pushNamed(context, '/main');
+    setState(() => _submitting = true);
+
+    try {
+      final response = await ref
+          .read(authServiceProvider)
+          .signIn(email: email, password: password);
+
+      if (response.session == null) {
+        throw Exception('Sign in failed');
+      }
+
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+      }
+    } on AuthException catch (e) {
+      setState(() => _passwordError = e.message);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override
@@ -112,10 +133,10 @@ class _PasswordLoginState extends State<PasswordLogin> {
               ),
               SizedBox(height: screenHeight * 0.04),
               ScreenButton(
-                buttonText: "Continue",
+                buttonText: _submitting ? "Signing in..." : "Continue",
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: _submit,
+                onPressed: _submitting ? null : _submit,
               ),
               SizedBox(height: screenHeight * 0.02),
             ],

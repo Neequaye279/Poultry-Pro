@@ -1,5 +1,6 @@
 import 'status_category.dart';
 import 'flock_category.dart';
+import 'package:uuid/uuid.dart';
 
 class Flock {
   final String id;
@@ -20,7 +21,7 @@ class Flock {
     int? currentBirdCount,
     this.ageInWeeks,
     this.imagePath,
-  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+  }) : id = id ?? const Uuid().v4(),
        currentBirdCount = currentBirdCount ?? initialBirdCount;
 
   double get survivalRate =>
