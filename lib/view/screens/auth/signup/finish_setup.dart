@@ -20,26 +20,20 @@ class FinishSetup extends ConsumerStatefulWidget {
 class _FinishSetupState extends ConsumerState<FinishSetup> {
   bool _submitting = false;
 
-  Future<void> _finish() async {
-    if (_submitting) return;
-    setState(() => _submitting = true);
-
+  void _finish() {
     final signup = ref.read(signupProvider);
     final authService = ref.read(authServiceProvider);
 
-    if (signup.securityMethod == null || signup.securityValue == null) {
-      setState(() => _submitting = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Security setup incomplete — please go back and set a password or PIN.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
+    Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+
+    _completeSetupInBackground(signup, authService);
+  }
+
+  Future<void> _completeSetupInBackground(
+    SignupData signup,
+    AuthService authService,
+  ) async {
+    if (signup.securityMethod == null || signup.securityValue == null) return;
 
     final String accountPassword;
     if (signup.securityMethod == SecurityMethod.password) {
@@ -52,13 +46,9 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
     }
 
     try {
-      final passwordResponse = await authService
+      await authService
           .setPassword(accountPassword)
           .timeout(const Duration(seconds: 15));
-
-      if (passwordResponse.user == null) {
-        throw Exception('Failed to finish account setup');
-      }
 
       await ref
           .read(profileProvider.notifier)
@@ -70,23 +60,8 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
           );
 
       ref.read(signupProvider.notifier).reset();
-
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-    } on AuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
-      }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
+      // Silently failed in the background — nothing to show, screen is already gone.
     }
   }
 
@@ -165,7 +140,7 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
                 buttonText: _submitting ? "Setting up..." : "Finish Setup",
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: _submitting ? null : _finish,
+                onPressed: _finish,
               ),
               SizedBox(height: screenHeight * 0.02),
             ],
