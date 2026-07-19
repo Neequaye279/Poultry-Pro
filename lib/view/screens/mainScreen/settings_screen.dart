@@ -13,6 +13,7 @@ import 'package:poultry_pro/view_model/app_settings_provider.dart';
 import 'package:poultry_pro/model/backup.dart';
 import 'package:poultry_pro/view_model/backup_provider.dart';
 import 'package:poultry_pro/services/auth_services.dart';
+import 'help_screen.dart';
 
 class Settings extends ConsumerStatefulWidget {
   const Settings({super.key});
@@ -136,9 +137,14 @@ class _SettingsState extends ConsumerState<Settings> {
     final backup = ref.read(backupProvider);
     if (backup.status == SyncStatus.syncing) return;
 
-    ref.read(backupProvider.notifier).startSyncing();
-    await Future.delayed(const Duration(seconds: 2));
-    ref.read(backupProvider.notifier).markSynced();
+    await ref.read(backupProvider.notifier).runBackup();
+
+    final result = ref.read(backupProvider);
+    if (result.status == SyncStatus.failed && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage ?? 'Backup failed')),
+      );
+    }
   }
 
   @override
@@ -510,7 +516,13 @@ class _SettingsContent extends ConsumerWidget {
                   onExportReports: () {},
                 ),
                 const SizedBox(height: 16),
-                SupportSection(onHelpFaq: () {}, onLogOut: _confirmLogOut),
+                SupportSection(
+                  onHelpFaq: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => HelpFaqScreen()),
+                  ),
+                  onLogOut: _confirmLogOut,
+                ),
                 const SizedBox(height: 24),
               ],
             ),

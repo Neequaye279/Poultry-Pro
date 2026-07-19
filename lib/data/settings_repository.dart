@@ -1,6 +1,7 @@
 import 'package:poultry_pro/data/database_helper.dart';
 import 'package:poultry_pro/model/profile.dart';
 import 'package:poultry_pro/model/app_settings.dart';
+import 'package:flutter/foundation.dart';
 
 class SettingsRepository {
   final _dbHelper = DatabaseHelper.instance;
@@ -13,6 +14,7 @@ class SettingsRepository {
 
   Future<Profile?> getProfile() async {
     final row = await _getRow();
+    debugPrint('getProfile called: row=$row');
     if (row == null) return null;
     return Profile(
       name: row['name'] as String,
@@ -43,6 +45,9 @@ class SettingsRepository {
   Future<void> saveProfile(Profile profile) async {
     final db = await _dbHelper.database;
     final existing = await _getRow();
+    debugPrint(
+      'saveProfile called: existing=$existing, new name=${profile.name}',
+    );
 
     if (existing == null) {
       await db.insert('settings', {
