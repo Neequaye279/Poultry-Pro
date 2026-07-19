@@ -294,7 +294,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
                           const SizedBox(height: 14),
                           _ContactRow(
                             icon: LucideIcons.mail,
-                            label: 'support@poultrypro.app',
+                            label: 'eliakimrobertzekey@gmail.com',
                           ),
                           const SizedBox(height: 10),
                           _ContactRow(
