@@ -8,8 +8,6 @@ class AccountSection extends StatelessWidget {
   final bool showChangePin;
   final VoidCallback onToggleProfileInfo;
   final VoidCallback onToggleChangePin;
-  final bool biometricsEnabled;
-  final ValueChanged<bool> onBiometricsChanged;
 
   const AccountSection({
     super.key,
@@ -18,8 +16,6 @@ class AccountSection extends StatelessWidget {
     required this.showChangePin,
     required this.onToggleProfileInfo,
     required this.onToggleChangePin,
-    required this.biometricsEnabled,
-    required this.onBiometricsChanged,
   });
 
   @override
@@ -73,61 +69,6 @@ class AccountSection extends StatelessWidget {
                   child: changePinContent,
                 ),
               ],
-              Divider(
-                height: 1,
-                color: Theme.of(
-                  context,
-                ).colorScheme.scrim.withValues(alpha: 1.2),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      height: 44,
-                      width: 44,
-                      decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        LucideIcons.fingerprint,
-                        color: colors.primary,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Biometrics',
-                            style: TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                              color: colors.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Fingerprint / Face ID',
-                            style: TextStyle(fontSize: 13, color: colors.scrim),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: biometricsEnabled,
-                      onChanged: onBiometricsChanged,
-                      activeThumbColor: colors.primary,
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),

@@ -60,7 +60,8 @@ class _PinLoginState extends ConsumerState<PinLogin> {
 
       final response = await ref
           .read(authServiceProvider)
-          .signIn(email: storedEmail, password: storedPassword);
+          .signIn(email: storedEmail, password: storedPassword)
+          .timeout(const Duration(seconds: 15));
 
       if (response.session == null) {
         throw Exception('Sign in failed');
@@ -71,6 +72,8 @@ class _PinLoginState extends ConsumerState<PinLogin> {
       }
     } on AuthException catch (e) {
       setState(() => _pinError = e.message);
+    } catch (e) {
+      setState(() => _pinError = 'Something went wrong,please try again');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

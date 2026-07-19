@@ -12,6 +12,7 @@ import 'package:poultry_pro/view_model/profile_provider.dart';
 import 'package:poultry_pro/view_model/app_settings_provider.dart';
 import 'package:poultry_pro/model/backup.dart';
 import 'package:poultry_pro/view_model/backup_provider.dart';
+import 'package:poultry_pro/services/auth_services.dart';
 
 class Settings extends ConsumerStatefulWidget {
   const Settings({super.key});
@@ -235,6 +236,42 @@ class _SettingsContent extends ConsumerWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final backup = ref.watch(backupProvider);
 
+    Future<void> _confirmLogOut() async {
+      final colors = Theme.of(context).colorScheme;
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(
+                'Log Out',
+                style: TextStyle(
+                  color: colors.error,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+      if (!context.mounted) return;
+
+      await ref.read(authServiceProvider).signOut();
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/wel', (route) => false);
+      }
+    }
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,15 +478,15 @@ class _SettingsContent extends ConsumerWidget {
                       ? onCancelEdit
                       : onStartEdit,
                   onToggleChangePin: onToggleChangePin,
-                  biometricsEnabled: appSettings.biometricsEnabled,
-                  onBiometricsChanged: (v) => ref
-                      .read(appSettingsProvider.notifier)
-                      .setBiometricsEnabled(v),
                   changePinContent: ChangePinContent(
                     onCancel: onToggleChangePin,
-                    onSave: (currentPin, newPin) {
-                      // TODO: PIN handling moves to Supabase Auth
+                    onSaved: () {
                       onToggleChangePin();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('PIN updated successfully'),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -473,7 +510,7 @@ class _SettingsContent extends ConsumerWidget {
                   onExportReports: () {},
                 ),
                 const SizedBox(height: 16),
-                SupportSection(onHelpFaq: () {}, onLogOut: () {}),
+                SupportSection(onHelpFaq: () {}, onLogOut: _confirmLogOut),
                 const SizedBox(height: 24),
               ],
             ),

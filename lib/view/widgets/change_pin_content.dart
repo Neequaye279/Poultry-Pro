@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:poultry_pro/services/auth_services.dart';
+import 'package:poultry_pro/services/secure_storage_service.dart';
 
-class ChangePinContent extends StatefulWidget {
+class ChangePinContent extends ConsumerStatefulWidget {
   final VoidCallback onCancel;
-  final void Function(String currentPin, String newPin) onSave;
+  final VoidCallback onSaved;
 
   const ChangePinContent({
     super.key,
     required this.onCancel,
-    required this.onSave,
+    required this.onSaved,
   });
 
   @override
-  State<ChangePinContent> createState() => _ChangePinContentState();
+  ConsumerState<ChangePinContent> createState() => _ChangePinContentState();
 }
 
-class _ChangePinContentState extends State<ChangePinContent> {
+class _ChangePinContentState extends ConsumerState<ChangePinContent> {
   late TextEditingController _currentPinController;
   late TextEditingController _newPinController;
   late TextEditingController _confirmPinController;
@@ -22,6 +25,7 @@ class _ChangePinContentState extends State<ChangePinContent> {
   String? _currentPinError;
   String? _newPinError;
   String? _confirmPinError;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -39,7 +43,7 @@ class _ChangePinContentState extends State<ChangePinContent> {
     super.dispose();
   }
 
-  void _savePin() {
+  Future<void> _savePin() async {
     final currentPin = _currentPinController.text.trim();
     final newPin = _newPinController.text.trim();
     final confirmPin = _confirmPinController.text.trim();
@@ -80,10 +84,57 @@ class _ChangePinContentState extends State<ChangePinContent> {
       return;
     }
 
-    widget.onSave(currentPin, newPin);
-    _currentPinController.clear();
-    _newPinController.clear();
-    _confirmPinController.clear();
+    setState(() => _saving = true);
+
+    try {
+      final storedPin = await SecureStorageService.getPin();
+      final storedEmail = await SecureStorageService.getEmail();
+      final storedPassword = await SecureStorageService.getPassword();
+
+      if (storedPin == null || storedEmail == null || storedPassword == null) {
+        setState(() {
+          _currentPinError = 'No PIN set up on this device';
+          _saving = false;
+        });
+        return;
+      }
+
+      if (currentPin != storedPin) {
+        setState(() {
+          _currentPinError = 'Current PIN is incorrect';
+          _saving = false;
+        });
+        return;
+      }
+
+      final authService = ref.read(authServiceProvider);
+      final response = await authService
+          .signIn(email: storedEmail, password: storedPassword)
+          .timeout(const Duration(seconds: 15));
+
+      if (response.session == null) {
+        setState(() {
+          _currentPinError = 'Could not verify your account, please try again';
+          _saving = false;
+        });
+        return;
+      }
+
+      await SecureStorageService.savePin(newPin);
+
+      _currentPinController.clear();
+      _newPinController.clear();
+      _confirmPinController.clear();
+
+      if (!mounted) return;
+      setState(() => _saving = false);
+      widget.onSaved();
+    } catch (e) {
+      setState(() {
+        _currentPinError = 'Something went wrong, please try again';
+        _saving = false;
+      });
+    }
   }
 
   void _cancel() {
@@ -133,7 +184,7 @@ class _ChangePinContentState extends State<ChangePinContent> {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _cancel,
+                onPressed: _saving ? null : _cancel,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: colors.primary,
                   side: BorderSide(color: colors.primary, width: 1.5),
@@ -151,7 +202,7 @@ class _ChangePinContentState extends State<ChangePinContent> {
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: _savePin,
+                onPressed: _saving ? null : _savePin,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colors.primary,
                   foregroundColor: Colors.white,
@@ -161,9 +212,9 @@ class _ChangePinContentState extends State<ChangePinContent> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  _saving ? 'Saving...' : 'Save',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),

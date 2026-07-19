@@ -6,7 +6,7 @@ import 'package:poultry_pro/view/Theme/color_theme.dart';
 import 'package:poultry_pro/view/Theme/text_theme.dart';
 import 'view/screens/splash_screen.dart';
 import 'view/screens/welcome_screen.dart';
-import 'view/screens/auth/signup/biometrics.dart';
+import 'view/screens/auth/signup/finish_setup.dart';
 import 'view/screens/auth/signup/details_screen.dart';
 import 'view/screens/auth/signup/password_setup.dart';
 import 'view/screens/auth/signup/pin_setup.dart';
@@ -69,7 +69,7 @@ class PoultryPro extends ConsumerWidget {
         '/ver': (context) => Verification(),
         '/piSetup': (context) => PinSetup(),
         '/paSetup': (context) => PasswordSetup(),
-        '/bio': (context) => Biometrics(),
+        '/bio': (context) => FinishSetup(),
         '/piLogin': (context) => PinLogin(),
         '/paLogin': (context) => PasswordLogin(),
         '/home': (context) => Home(),

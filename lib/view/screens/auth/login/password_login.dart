@@ -49,7 +49,8 @@ class _PasswordLoginState extends ConsumerState<PasswordLogin> {
     try {
       final response = await ref
           .read(authServiceProvider)
-          .signIn(email: email, password: password);
+          .signIn(email: email, password: password)
+          .timeout(const Duration(seconds: 15));
 
       if (response.session == null) {
         throw Exception('Sign in failed');
@@ -60,6 +61,8 @@ class _PasswordLoginState extends ConsumerState<PasswordLogin> {
       }
     } on AuthException catch (e) {
       setState(() => _passwordError = e.message);
+    } catch (e) {
+      setState(() => _passwordError = 'Something went wrong, please try again');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

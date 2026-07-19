@@ -38,7 +38,9 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
     final authService = ref.read(authServiceProvider);
 
     try {
-      await authService.sendOtp(email: email);
+      await authService
+          .sendOtp(email: email)
+          .timeout(const Duration(seconds: 15));
       setState(() => _codeSent = true);
       _showSentToast();
     } on AuthException catch (e) {
@@ -46,6 +48,12 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to send code: $e')));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -87,7 +95,9 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
     });
 
     try {
-      final response = await authService.verifyOtp(email: email, token: otp);
+      final response = await authService
+          .verifyOtp(email: email, token: otp)
+          .timeout(const Duration(seconds: 15));
 
       if (response.session == null) {
         setState(() {
@@ -102,6 +112,11 @@ class _VerifyAccountScreenState extends ConsumerState<Verification> {
     } on AuthException catch (e) {
       setState(() {
         _otpError = e.message;
+        _isVerifying = false;
+      });
+    } catch (e) {
+      setState(() {
+        _otpError = 'Something went wrong, please try again';
         _isVerifying = false;
       });
     }

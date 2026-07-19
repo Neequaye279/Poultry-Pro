@@ -43,6 +43,7 @@ dependencies:
   supabase_flutter: ^2.16.0
   flutter_secure_storage: ^10.3.1
   connectivity_plus: ^7.3.0
+  local_auth: ^3.0.2
 
 dev_dependencies:
   flutter_test:

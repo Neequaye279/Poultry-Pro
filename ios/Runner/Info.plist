@@ -6,6 +6,8 @@
 <string>This app needs camera access to take photos of your flocks.</string>
 <key>NSPhotoLibraryUsageDescription</key>
 <string>This app needs photo library access to select flock photos.</string>
+<key>NSFaceIDUsageDescription</key>
+<string>This app uses Face ID to unlock your account securely.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

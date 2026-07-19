@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:poultry_pro/view/widgets/progress_stepper.dart';
-import 'package:poultry_pro/view/widgets/biometric_card.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
 import 'package:poultry_pro/view_model/signup_provider.dart';
 import 'package:poultry_pro/view_model/profile_provider.dart';
@@ -11,26 +10,21 @@ import 'package:poultry_pro/model/signup_data.dart';
 import 'package:poultry_pro/services/auth_services.dart';
 import 'package:poultry_pro/services/secure_storage_service.dart';
 
-enum _BiometricChoice { fingerprint, faceId }
-
-class Biometrics extends ConsumerStatefulWidget {
-  const Biometrics({super.key});
+class FinishSetup extends ConsumerStatefulWidget {
+  const FinishSetup({super.key});
 
   @override
-  ConsumerState<Biometrics> createState() => _BiometricsState();
+  ConsumerState<FinishSetup> createState() => _FinishSetupState();
 }
 
-class _BiometricsState extends ConsumerState<Biometrics> {
-  _BiometricChoice? _selected;
+class _FinishSetupState extends ConsumerState<FinishSetup> {
   bool _submitting = false;
 
-  Future<void> _finish({required bool biometricsEnabled}) async {
+  Future<void> _finish() async {
     if (_submitting) return;
     setState(() => _submitting = true);
 
     final signup = ref.read(signupProvider);
-    ref.read(signupProvider.notifier).setBiometricsEnabled(biometricsEnabled);
-
     final authService = ref.read(authServiceProvider);
 
     if (signup.securityMethod == null || signup.securityValue == null) {
@@ -58,8 +52,9 @@ class _BiometricsState extends ConsumerState<Biometrics> {
     }
 
     try {
-      // Account already exists from OTP verification — just attach the password.
-      final passwordResponse = await authService.setPassword(accountPassword);
+      final passwordResponse = await authService
+          .setPassword(accountPassword)
+          .timeout(const Duration(seconds: 15));
 
       if (passwordResponse.user == null) {
         throw Exception('Failed to finish account setup');
@@ -83,6 +78,12 @@ class _BiometricsState extends ConsumerState<Biometrics> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -125,7 +126,7 @@ class _BiometricsState extends ConsumerState<Biometrics> {
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     "Create Account",
                     style: Theme.of(context).textTheme.titleLarge,
@@ -133,8 +134,8 @@ class _BiometricsState extends ConsumerState<Biometrics> {
                 ],
               ),
               SizedBox(height: screenHeight * 0.03),
-              ProgressStepper(currentStep: 3),
-              SizedBox(height: screenHeight * 0.04),
+              const ProgressStepper(currentStep: 3),
+              SizedBox(height: screenHeight * 0.06),
               Container(
                 width: 92,
                 height: 92,
@@ -143,61 +144,28 @@ class _BiometricsState extends ConsumerState<Biometrics> {
                   borderRadius: BorderRadius.circular(26),
                 ),
                 child: Icon(
-                  LucideIcons.fingerprint,
-                  size: 70,
+                  LucideIcons.checkCircle2,
+                  size: 60,
                   color: colors.primary,
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02),
+              SizedBox(height: screenHeight * 0.03),
               Text(
-                "Enable Biometrics",
+                "You're All Set",
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: screenHeight * 0.02),
               Text(
-                "Add fingerprint or Face ID for faster, more secure access",
+                "Your account is ready. Tap below to finish setting up and start managing your farm.",
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: screenHeight * 0.04),
-              BiometricCard(
-                icon: LucideIcons.fingerprint,
-                title: "Fingerprint",
-                subtitle: "Use your fingerprint to log in",
-                selected: _selected == _BiometricChoice.fingerprint,
-                onTap: () =>
-                    setState(() => _selected = _BiometricChoice.fingerprint),
-              ),
-              SizedBox(height: 14),
-              BiometricCard(
-                icon: LucideIcons.user,
-                title: "Face ID",
-                subtitle: "Use Face ID to log in",
-                selected: _selected == _BiometricChoice.faceId,
-                onTap: () =>
-                    setState(() => _selected = _BiometricChoice.faceId),
-              ),
-              SizedBox(height: 22),
-              TextButton(
-                onPressed: _submitting
-                    ? null
-                    : () => _finish(biometricsEnabled: false),
-                child: Text(
-                  "Skip for now ->",
-                  style: TextStyle(
-                    color: colors.onSurface,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              SizedBox(height: screenHeight * 0.03),
+              SizedBox(height: screenHeight * 0.06),
               ScreenButton(
-                buttonText: _submitting ? "Setting up..." : "Complete Setup",
+                buttonText: _submitting ? "Setting up..." : "Finish Setup",
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: (_submitting || _selected == null)
-                    ? null
-                    : () => _finish(biometricsEnabled: true),
+                onPressed: _submitting ? null : _finish,
               ),
               SizedBox(height: screenHeight * 0.02),
             ],
