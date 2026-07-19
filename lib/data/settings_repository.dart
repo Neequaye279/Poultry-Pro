@@ -67,10 +67,24 @@ class SettingsRepository {
 
   Future<void> saveAppSettings(AppSettings settings) async {
     final db = await _dbHelper.database;
-    await db.update('settings', {
+    final existing = await _getRow();
+    final data = {
       'notificationsEnabled': settings.notificationsEnabled ? 1 : 0,
       'biometricsEnabled': settings.biometricsEnabled ? 1 : 0,
       'appearanceMode': settings.appearanceMode.name,
-    }, where: 'id = 1');
+    };
+
+    if (existing == null) {
+      await db.insert('settings', {
+        'id': 1,
+        'name': '',
+        'farm': '',
+        'phone': '',
+        'email': '',
+        ...data,
+      });
+    } else {
+      await db.update('settings', data, where: 'id = 1');
+    }
   }
 }

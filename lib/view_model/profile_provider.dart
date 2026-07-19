@@ -16,6 +16,13 @@ class ProfileNotifier extends AsyncNotifier<Profile?> {
     required String phone,
     required String email,
   }) async {
+    // Ensure the initial build() has fully resolved before we touch state.
+    // Without this, a late-arriving build() result (which started before
+    // this save, and resolves to the pre-save/null value) can land AFTER
+    // this method sets state, silently overwriting the freshly saved
+    // profile with stale/null data.
+    await future;
+
     final newProfile = Profile(
       name: name,
       farm: farm,

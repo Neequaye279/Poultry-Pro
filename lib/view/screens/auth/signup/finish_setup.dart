@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:poultry_pro/view/widgets/progress_stepper.dart';
 import 'package:poultry_pro/view/widgets/screen_button.dart';
 import 'package:poultry_pro/view_model/signup_provider.dart';
@@ -20,20 +19,34 @@ class FinishSetup extends ConsumerStatefulWidget {
 class _FinishSetupState extends ConsumerState<FinishSetup> {
   bool _submitting = false;
 
-  void _finish() {
+  Future<void> _finish() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
     final signup = ref.read(signupProvider);
     final authService = ref.read(authServiceProvider);
 
-    Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
-
-    _completeSetupInBackground(signup, authService);
+    try {
+      await _completeSetup(signup, authService);
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Setup failed. Please try again.')),
+      );
+    }
   }
 
-  Future<void> _completeSetupInBackground(
+  // <-- THIS is the "complete setup function" you're looking for
+  Future<void> _completeSetup(
     SignupData signup,
     AuthService authService,
   ) async {
-    if (signup.securityMethod == null || signup.securityValue == null) return;
+    if (signup.securityMethod == null || signup.securityValue == null) {
+      throw StateError('Missing security method or value');
+    }
 
     final String accountPassword;
     if (signup.securityMethod == SecurityMethod.password) {
@@ -49,6 +62,7 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
       await authService
           .setPassword(accountPassword)
           .timeout(const Duration(seconds: 15));
+      debugPrint('setPassword succeeded');
 
       await ref
           .read(profileProvider.notifier)
@@ -58,10 +72,12 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
             phone: signup.phone,
             email: signup.email,
           );
+      debugPrint('updateProfile succeeded');
 
       ref.read(signupProvider.notifier).reset();
-    } catch (e) {
-      // Silently failed in the background — nothing to show, screen is already gone.
+    } catch (e, st) {
+      debugPrint('Setup failed: $e\n$st');
+      rethrow;
     }
   }
 
@@ -98,7 +114,9 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
                         color: colors.onPrimary,
                         size: 20,
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: _submitting
+                          ? null
+                          : () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -140,7 +158,7 @@ class _FinishSetupState extends ConsumerState<FinishSetup> {
                 buttonText: _submitting ? "Setting up..." : "Finish Setup",
                 background: colors.primary,
                 foreground: colors.onPrimary,
-                onPressed: _finish,
+                onPressed: _submitting ? null : _finish,
               ),
               SizedBox(height: screenHeight * 0.02),
             ],
